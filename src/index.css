@@ -1,0 +1,11 @@
+@import "tailwindcss";
+
+@theme {
+  --font-mono: ui-monospace, "Cascadia Code", "SF Mono", Menlo, monospace;
+}
+
+html { color-scheme: dark; }
+body { @apply bg-slate-950 text-slate-200 font-mono antialiased; }
+
+.panel { @apply bg-slate-900/70 border border-slate-800 rounded-xl p-4 backdrop-blur-sm; }
+.panel-title { @apply text-[11px] uppercase tracking-widest text-slate-500 mb-3; }
