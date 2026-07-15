@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { ChartsSection } from './components/ChartsSection';
 import { CurrentCard } from './components/CurrentCard';
 import { Header } from './components/Header';
 import { HourlyStrip } from './components/HourlyStrip';
@@ -66,7 +67,7 @@ export default function App() {
               cityName={city.name}
             />
             <HourlyStrip hourly={consensus.hourly} startIdx={nowIdx} timezone={consensus.timezone} />
-            {/* Task 12: <ChartsSection /> */}
+            <ChartsSection hourly={consensus.hourly} startIdx={nowIdx} timezone={consensus.timezone} />
             {/* Task 13: <DailyList /> + <SourcesTable /> */}
             {/* Task 14: <RadarMap /> */}
             {weather.updatedAt && (
