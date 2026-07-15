@@ -76,7 +76,9 @@ export function buildConsensus(sources: SourceForecast[]): ConsensusForecast | n
     merged.weatherCode = mode(points.map(p => p.weatherCode).filter((v): v is number => v !== null));
     const temps = collect(points, 'temperature');
     merged.temperatureSpread = temps.length >= 2 ? Math.max(...temps) - Math.min(...temps) : null;
-    merged.temperatureBySource = Object.fromEntries(entries.map(e => [e.sourceId, e.point.temperature]));
+    const bySource = new Map(entries.map(e => [e.sourceId, e.point]));
+    merged.temperatureBySource = Object.fromEntries(
+      sources.map(s => [s.sourceId, bySource.get(s.sourceId)?.temperature ?? null]));
     merged.sourcesCount = points.length;
     return merged;
   });

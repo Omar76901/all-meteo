@@ -47,6 +47,7 @@ describe('buildConsensus', () => {
     expect(p0.sourcesCount).toBe(3);
     expect(p0.weatherCode).toBe(61); // moda
     expect(p0.temperatureBySource).toEqual({ a: 20, b: 22, c: 24 });
+    expect(c.hourly[1].temperatureBySource).toEqual({ a: null, b: 21, c: null });
     expect(c.hourly[1].sourcesCount).toBe(1);
   });
   test('valori null ignorati nella mediana', () => {
