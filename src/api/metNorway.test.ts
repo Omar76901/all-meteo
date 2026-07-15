@@ -19,4 +19,24 @@ describe('parseMetNorway', () => {
     expect(f.hourly[2].weatherCode).toBeNull();
     expect(f.hourly[0].apparentTemperature).toBeNull(); // MET non la fornisce
   });
+
+  test('input malformato non lancia', () => {
+    expect(parseMetNorway(null).hourly).toEqual([]);
+    expect(parseMetNorway({}).hourly).toEqual([]);
+    expect(parseMetNorway({ properties: {} }).hourly).toEqual([]);
+  });
+
+  test('entry senza data o con time non valido vengono scartate', () => {
+    const f = parseMetNorway({
+      properties: {
+        timeseries: [
+          { time: 'not-a-date', data: { instant: { details: { air_temperature: 1 } } } },
+          { time: '2026-07-15T12:00:00Z' }, // senza data
+          { time: '2026-07-15T13:00:00Z', data: { instant: { details: { air_temperature: 2 } } } },
+        ] as unknown
+      }
+    } as unknown);
+    expect(f.hourly).toHaveLength(1);
+    expect(f.hourly[0].temperature).toBe(2);
+  });
 });
