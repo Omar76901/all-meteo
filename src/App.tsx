@@ -4,6 +4,7 @@ import { CurrentCard } from './components/CurrentCard';
 import { DailyList } from './components/DailyList';
 import { Header } from './components/Header';
 import { HourlyStrip } from './components/HourlyStrip';
+import { RadarMap } from './components/RadarMap';
 import { SourcesTable } from './components/SourcesTable';
 import { computeDayPhase, gradientFor } from './domain/background';
 import { currentHourIndex, formatTime } from './domain/timeUtils';
@@ -71,7 +72,7 @@ export default function App() {
             <HourlyStrip hourly={consensus.hourly} startIdx={nowIdx} timezone={consensus.timezone} />
             <ChartsSection hourly={consensus.hourly} startIdx={nowIdx} timezone={consensus.timezone} />
             <DailyList daily={consensus.daily} timezone={consensus.timezone} />
-            {/* Task 14: <RadarMap /> */}
+            <RadarMap lat={city.lat} lon={city.lon} />
             <SourcesTable sources={weather.sources} failed={weather.failedSources} consensus={consensus} />
             {weather.updatedAt && (
               <p className="text-center text-[10px] text-slate-500">
