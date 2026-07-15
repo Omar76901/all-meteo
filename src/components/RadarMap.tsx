@@ -16,6 +16,7 @@ export function RadarMap({ lat, lon }: Props) {
 
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
+    let cancelled = false;
     const map = L.map(containerRef.current, { zoomControl: false }).setView([lat, lon], 7);
     L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
       attribution: '&copy; OpenStreetMap &copy; CARTO', subdomains: 'abcd', maxZoom: 12,
@@ -24,14 +25,15 @@ export function RadarMap({ lat, lon }: Props) {
 
     fetchRadarFrames()
       .then(({ host, frames, pastCount }) => {
+        if (cancelled) return;
         layersRef.current = frames.map(f =>
           L.tileLayer(`${host}${f.path}/256/{z}/{x}/{y}/2/1_1.png`, { opacity: 0, maxZoom: 12 }).addTo(map));
         setFrames(frames);
         setFrameIdx(Math.max(0, pastCount - 1));
       })
-      .catch(() => setError(true));
+      .catch(() => { if (!cancelled) setError(true); });
 
-    return () => { map.remove(); mapRef.current = null; layersRef.current = []; };
+    return () => { cancelled = true; map.remove(); mapRef.current = null; layersRef.current = []; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
