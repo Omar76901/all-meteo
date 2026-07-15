@@ -28,4 +28,8 @@ describe('ultima città', () => {
     setLastCity(roma);
     expect(getLastCity()!.name).toBe('Roma');
   });
+  test('localStorage corrotto → null', () => {
+    localStorage.setItem('allmeteo:lastCity', '{non-json');
+    expect(getLastCity()).toBeNull();
+  });
 });
