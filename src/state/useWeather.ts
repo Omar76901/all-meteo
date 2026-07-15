@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { fetchAllSources } from '../api/sources';
 import { buildConsensus, type ConsensusForecast } from '../domain/consensus';
 import type { City, SourceForecast } from '../domain/types';
@@ -21,15 +21,19 @@ const IDLE: WeatherState = {
 export function useWeather(city: City | null): WeatherState & { refresh: () => void } {
   const [state, setState] = useState<WeatherState>(IDLE);
   const lat = city?.lat, lon = city?.lon;
+  const requestSeq = useRef(0);
 
   const load = useCallback(async () => {
     if (lat === undefined || lon === undefined) {
+      requestSeq.current++;
       setState(IDLE);
       return;
     }
+    const seq = ++requestSeq.current;
     setState(s => ({ ...s, status: s.consensus ? s.status : 'loading', error: null }));
     try {
       const { ok, failed } = await fetchAllSources(lat, lon);
+      if (seq !== requestSeq.current) return;
       const consensus = buildConsensus(ok);
       if (!consensus) {
         setState(s => ({ ...s, status: 'error', error: 'Nessuna fonte meteo raggiungibile', failedSources: failed }));
@@ -37,6 +41,7 @@ export function useWeather(city: City | null): WeatherState & { refresh: () => v
       }
       setState({ status: 'ready', consensus, sources: ok, failedSources: failed, updatedAt: new Date(), error: null });
     } catch (e) {
+      if (seq !== requestSeq.current) return;
       setState(s => ({ ...s, status: 'error', error: e instanceof Error ? e.message : String(e) }));
     }
   }, [lat, lon]);
