@@ -1,5 +1,7 @@
 import { useMemo, useState } from 'react';
+import { CurrentCard } from './components/CurrentCard';
 import { Header } from './components/Header';
+import { HourlyStrip } from './components/HourlyStrip';
 import { computeDayPhase, gradientFor } from './domain/background';
 import { currentHourIndex, formatTime } from './domain/timeUtils';
 import type { City } from './domain/types';
@@ -55,7 +57,15 @@ export default function App() {
 
         {consensus && current && city && (
           <>
-            {/* Task 11: <CurrentCard /> + <HourlyStrip /> */}
+            <CurrentCard
+              current={current}
+              today={consensus.daily[0]}
+              agreement={consensus.agreement}
+              sourcesTotal={consensus.sourceIds.length + weather.failedSources.length}
+              failedCount={weather.failedSources.length}
+              cityName={city.name}
+            />
+            <HourlyStrip hourly={consensus.hourly} startIdx={nowIdx} timezone={consensus.timezone} />
             {/* Task 12: <ChartsSection /> */}
             {/* Task 13: <DailyList /> + <SourcesTable /> */}
             {/* Task 14: <RadarMap /> */}
