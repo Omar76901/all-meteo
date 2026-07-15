@@ -39,7 +39,9 @@ const kmh = (ms: number | undefined): number | null => ms == null ? null : Math.
 const orNull = (v: number | undefined): number | null => v ?? null;
 
 export function parseMetNorway(data: unknown): SourceForecast {
-  const ts = (data as MetResponse).properties?.timeseries ?? [];
+  const ts = ((data as MetResponse | null)?.properties?.timeseries ?? []).filter(
+    t => t && t.data && Number.isFinite(Date.parse(t.time))
+  );
   return {
     sourceId: 'met_norway',
     sourceName: 'MET Norway',
