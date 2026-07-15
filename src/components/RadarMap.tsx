@@ -83,8 +83,8 @@ export function RadarMap({ lat, lon }: Props) {
           </button>
         </div>
       </div>
-      <div className="relative flex-1">
-        <div ref={containerRef} className={expanded ? 'h-full rounded-lg' : 'h-64 rounded-lg'} />
+      <div className={expanded ? 'relative flex-1' : 'relative h-64'}>
+        <div ref={containerRef} className="absolute inset-0 rounded-lg" />
         {!expanded && !error && (
           <button
             aria-label="Espandi radar a schermo pieno"
