@@ -34,7 +34,7 @@ jobs:
       - name: Build con base del progetto Pages
         run: npm run build -- --base=/${{ github.event.repository.name }}/
 
-      - uses: actions/configure-pages@v5
+      - uses: actions/configure-pages@v6
 
       - uses: actions/upload-pages-artifact@v3
         with:
