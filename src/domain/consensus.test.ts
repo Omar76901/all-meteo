@@ -79,6 +79,10 @@ describe('buildConsensus', () => {
     expect(mk(20, 22.5)).toBe('medio');
     expect(mk(18, 25)).toBe('basso');
   });
+  test('accordo con singola fonte (spread non calcolabile) → basso, non alto', () => {
+    const c = buildConsensus([src('a', [hour(T0, { temperature: 20 })])])!;
+    expect(c.agreement).toBe('basso');
+  });
   test('lista vuota → null; sourceIds e timezone propagati', () => {
     expect(buildConsensus([])).toBeNull();
     const c = buildConsensus([src('a', [hour(T0, { temperature: 20 })])])!;

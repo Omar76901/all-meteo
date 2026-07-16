@@ -24,6 +24,7 @@ describe('parseMetNorway', () => {
     expect(parseMetNorway(null).hourly).toEqual([]);
     expect(parseMetNorway({}).hourly).toEqual([]);
     expect(parseMetNorway({ properties: {} }).hourly).toEqual([]);
+    expect(parseMetNorway({ properties: { timeseries: 'oops' } }).hourly).toEqual([]);
   });
 
   test('entry senza data o con time non valido vengono scartate', () => {

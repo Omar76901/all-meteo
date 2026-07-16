@@ -25,7 +25,11 @@ export function isFavorite(c: City, favs: City[] = getFavorites()): boolean {
 export function toggleFavorite(c: City): City[] {
   const favs = getFavorites();
   const next = isFavorite(c, favs) ? favs.filter(f => cityKey(f) !== cityKey(c)) : [...favs, c];
-  localStorage.setItem(FAV_KEY, JSON.stringify(next));
+  try {
+    localStorage.setItem(FAV_KEY, JSON.stringify(next));
+  } catch {
+    // localStorage non disponibile/quota superata: ignora, lo stato in memoria resta valido
+  }
   return next;
 }
 
@@ -34,5 +38,9 @@ export function getLastCity(): City | null {
 }
 
 export function setLastCity(c: City): void {
-  localStorage.setItem(LAST_KEY, JSON.stringify(c));
+  try {
+    localStorage.setItem(LAST_KEY, JSON.stringify(c));
+  } catch {
+    // localStorage non disponibile/quota superata: ignora
+  }
 }
