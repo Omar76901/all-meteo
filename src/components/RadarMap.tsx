@@ -7,6 +7,7 @@ interface Props { lat: number; lon: number }
 export function RadarMap({ lat, lon }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<L.Map | null>(null);
+  const markerRef = useRef<L.CircleMarker | null>(null);
   const layersRef = useRef<L.TileLayer[]>([]);
   const [frames, setFrames] = useState<RadarFrame[]>([]);
   const [frameIdx, setFrameIdx] = useState(0);
@@ -21,6 +22,9 @@ export function RadarMap({ lat, lon }: Props) {
     L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
       attribution: '&copy; OpenStreetMap &copy; CARTO', subdomains: 'abcd', maxZoom: 12,
     }).addTo(map);
+    markerRef.current = L.circleMarker([lat, lon], {
+      radius: 7, color: '#e0f2fe', weight: 2, fillColor: '#0ea5e9', fillOpacity: 0.9,
+    }).addTo(map);
     mapRef.current = map;
 
     fetchRadarFrames()
@@ -33,11 +37,14 @@ export function RadarMap({ lat, lon }: Props) {
       })
       .catch(() => { if (!cancelled) setError(true); });
 
-    return () => { cancelled = true; map.remove(); mapRef.current = null; layersRef.current = []; };
+    return () => { cancelled = true; map.remove(); mapRef.current = null; markerRef.current = null; layersRef.current = []; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  useEffect(() => { mapRef.current?.setView([lat, lon]); }, [lat, lon]);
+  useEffect(() => {
+    mapRef.current?.setView([lat, lon]);
+    markerRef.current?.setLatLng([lat, lon]);
+  }, [lat, lon]);
 
   useEffect(() => {
     layersRef.current.forEach((l, i) => l.setOpacity(i === frameIdx ? 0.75 : 0));

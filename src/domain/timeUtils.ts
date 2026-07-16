@@ -15,6 +15,13 @@ export function formatTime(iso: string, timezone: string | null): string {
   return new Intl.DateTimeFormat('it-IT', { hour: '2-digit', minute: '2-digit', timeZone: timezone ?? undefined }).format(new Date(iso));
 }
 
+export function formatDayHour(iso: string, timezone: string | null): string {
+  return new Intl.DateTimeFormat('it-IT', {
+    weekday: 'short', day: 'numeric', hour: '2-digit',
+    timeZone: timezone ?? undefined,
+  }).format(new Date(iso));
+}
+
 export function formatWeekday(dateStr: string): string {
   return new Intl.DateTimeFormat('it-IT', { weekday: 'short', day: 'numeric' }).format(new Date(`${dateStr}T12:00:00Z`));
 }
