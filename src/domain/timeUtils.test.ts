@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest';
-import { currentHourIndex, formatHour, formatWeekday } from './timeUtils';
+import { currentHourIndex, formatDayHour, formatHour, formatWeekday } from './timeUtils';
 
 describe('timeUtils', () => {
   test('currentHourIndex: ultima ora passata', () => {
@@ -13,5 +13,11 @@ describe('timeUtils', () => {
   });
   test('formatWeekday in italiano', () => {
     expect(formatWeekday('2026-07-15')).toMatch(/^mer/);
+  });
+  test('formatDayHour mostra giorno e ora nel timezone', () => {
+    const s = formatDayHour('2026-07-15T22:30:00.000Z', 'Europe/Rome');
+    expect(s).toMatch(/gio/); // le 00:30 di giovedì 16 a Roma
+    expect(s).toContain('16');
+    expect(s).toContain('00');
   });
 });
