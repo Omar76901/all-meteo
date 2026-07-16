@@ -50,7 +50,7 @@ export default function App() {
           <section className="panel text-center py-14 animate-pulse">Caricamento fonti meteo…</section>
         )}
 
-        {weather.status === 'error' && (
+        {weather.status === 'error' && !consensus && (
           <section className="panel text-center py-10">
             <p className="text-rose-400 mb-3">{weather.error}</p>
             <button onClick={weather.refresh} className="px-4 py-2 rounded-lg border border-slate-600 hover:border-sky-500">
@@ -61,6 +61,12 @@ export default function App() {
 
         {consensus && current && city && (
           <>
+            {weather.status === 'error' && (
+              <p className="text-center text-xs text-rose-400">
+                Aggiornamento non riuscito · dati precedenti mostrati ·{' '}
+                <button onClick={weather.refresh} className="underline hover:text-rose-300">riprova</button>
+              </p>
+            )}
             <CurrentCard
               current={current}
               today={consensus.daily[0]}

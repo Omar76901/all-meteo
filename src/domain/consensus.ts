@@ -98,7 +98,8 @@ export function buildConsensus(sources: SourceForecast[]): ConsensusForecast | n
 
   const spreads = hourly.slice(0, 24).map(h => h.temperatureSpread).filter((v): v is number => v !== null);
   const avgSpread = spreads.length ? spreads.reduce((a, b) => a + b, 0) / spreads.length : 0;
-  const agreement: Agreement = avgSpread < 1.5 ? 'alto' : avgSpread < 3 ? 'medio' : 'basso';
+  const agreement: Agreement =
+    spreads.length === 0 ? 'basso' : avgSpread < 1.5 ? 'alto' : avgSpread < 3 ? 'medio' : 'basso';
 
   return {
     hourly, daily, agreement,

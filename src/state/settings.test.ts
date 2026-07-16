@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, test } from 'vitest';
+import { beforeEach, describe, expect, test, vi } from 'vitest';
 import { getFavorites, getLastCity, isFavorite, setLastCity, toggleFavorite } from './settings';
 
 const milano = { name: 'Milano', lat: 45.4643, lon: 9.1895 };
@@ -20,6 +20,16 @@ describe('preferiti', () => {
     localStorage.setItem('allmeteo:favorites', '{non-json');
     expect(getFavorites()).toEqual([]);
   });
+  test('setItem che lancia (quota superata) non propaga l\'errore', () => {
+    const spy = vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+      throw new Error('quota');
+    });
+    try {
+      expect(() => toggleFavorite(milano)).not.toThrow();
+    } finally {
+      spy.mockRestore();
+    }
+  });
 });
 
 describe('ultima città', () => {
@@ -31,5 +41,15 @@ describe('ultima città', () => {
   test('localStorage corrotto → null', () => {
     localStorage.setItem('allmeteo:lastCity', '{non-json');
     expect(getLastCity()).toBeNull();
+  });
+  test('setItem che lancia (quota superata) non propaga l\'errore', () => {
+    const spy = vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+      throw new Error('quota');
+    });
+    try {
+      expect(() => setLastCity(roma)).not.toThrow();
+    } finally {
+      spy.mockRestore();
+    }
   });
 });
