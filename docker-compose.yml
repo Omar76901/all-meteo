@@ -1,0 +1,8 @@
+services:
+  allmeteo:
+    build: .
+    container_name: allmeteo
+    ports:
+      # raggiungibile da tutta la LAN su http://<IP-di-questo-PC>:8080
+      - "8080:80"
+    restart: unless-stopped

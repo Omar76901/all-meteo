@@ -25,6 +25,21 @@ npm test      # vitest
 npm run build # produzione (dist/)
 ```
 
+## Docker (LAN)
+```bash
+docker compose up -d --build
+```
+Il sito è servito da nginx sulla porta 8080: dal PC su http://localhost:8080, dagli altri
+dispositivi della LAN su `http://<IP-del-PC>:8080` (se non risponde, consenti a Docker
+la porta 8080 nel firewall di Windows). Nota: da un IP LAN in HTTP il browser non
+considera l'origine "sicura", quindi il service worker (cache offline / installazione PWA)
+resta disattivato; il sito funziona comunque normalmente.
+
+## CI
+- **CI**: su ogni PR e push su master — `npm audit`, typecheck, test, build
+- **Deploy GitHub Pages**: su push su master (richiede Pages attivo nelle impostazioni)
+- **Dependabot**: aggiornamenti settimanali di npm e GitHub Actions, validati dalla CI
+
 ## Sicurezza
 Dipendenze con versioni esatte (`save-exact`), lockfile committato, `npm audit` in CI locale,
 CSP restrittiva in produzione, nessun asset CDN a runtime.

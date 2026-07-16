@@ -2,6 +2,7 @@ node_modules/
 dist/
 dist-ssr/
 .superpowers/
+.claude/
 *.local
 .env
 .env.*
