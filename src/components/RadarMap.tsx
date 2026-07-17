@@ -10,6 +10,7 @@ export function RadarMap({ lat, lon }: Props) {
   const markerRef = useRef<L.CircleMarker | null>(null);
   const layersRef = useRef<L.TileLayer[]>([]);
   const [frames, setFrames] = useState<RadarFrame[]>([]);
+  const [pastCount, setPastCount] = useState(0);
   const [frameIdx, setFrameIdx] = useState(0);
   const [playing, setPlaying] = useState(true);
   const [expanded, setExpanded] = useState(false);
@@ -33,6 +34,7 @@ export function RadarMap({ lat, lon }: Props) {
         layersRef.current = frames.map(f =>
           L.tileLayer(`${host}${f.path}/256/{z}/{x}/{y}/2/1_1.png`, { opacity: 0, maxZoom: 12 }).addTo(map));
         setFrames(frames);
+        setPastCount(pastCount);
         setFrameIdx(Math.max(0, pastCount - 1));
       })
       .catch(() => { if (!cancelled) setError(true); });
@@ -105,6 +107,25 @@ export function RadarMap({ lat, lon }: Props) {
           </p>
         )}
       </div>
+      {!error && frames.length > 0 && (
+        <div className="pt-2">
+          <input
+            type="range"
+            min={0}
+            max={frames.length - 1}
+            step={1}
+            value={frameIdx}
+            aria-label="Timeline radar: trascina per muoverti tra i frame"
+            onChange={e => { setPlaying(false); setFrameIdx(Number(e.target.value)); }}
+            className="w-full accent-sky-500 cursor-pointer"
+          />
+          <div className="flex justify-between text-[9px] text-slate-500 uppercase tracking-wider">
+            <span>-2h</span>
+            <span>{frameIdx < pastCount ? 'osservato' : 'previsione'}</span>
+            <span>+30min</span>
+          </div>
+        </div>
+      )}
     </section>
   );
 }

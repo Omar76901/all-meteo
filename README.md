@@ -43,3 +43,9 @@ resta disattivato; il sito funziona comunque normalmente.
 ## Sicurezza
 Dipendenze con versioni esatte (`save-exact`), lockfile committato, `npm audit` in CI locale,
 CSP restrittiva in produzione, nessun asset CDN a runtime.
+
+## Licenza
+Distribuito con licenza [PolyForm Noncommercial 1.0.0](LICENSE): puoi usare, studiare,
+modificare e condividere questo software per scopi personali e non commerciali.
+**Qualsiasi uso commerciale (vendita, rivendita, servizi a pagamento basati su questo
+software) non è consentito.**

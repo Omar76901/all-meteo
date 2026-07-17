@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { AlertsBanner } from './components/AlertsBanner';
 import { ChartsSection } from './components/ChartsSection';
 import { CurrentCard } from './components/CurrentCard';
 import { DailyList } from './components/DailyList';
@@ -6,6 +7,7 @@ import { Header } from './components/Header';
 import { HourlyStrip } from './components/HourlyStrip';
 import { RadarMap } from './components/RadarMap';
 import { SourcesTable } from './components/SourcesTable';
+import { deriveAlerts } from './domain/alerts';
 import { computeDayPhase, gradientFor } from './domain/background';
 import { currentHourIndex, formatTime } from './domain/timeUtils';
 import type { City } from './domain/types';
@@ -33,6 +35,11 @@ export default function App() {
     );
     return gradientFor(category, phase);
   }, [current?.weatherCode, consensus?.daily]);
+
+  const alerts = useMemo(
+    () => (consensus ? deriveAlerts(consensus.hourly.slice(nowIdx, nowIdx + 48), consensus.timezone) : []),
+    [consensus, nowIdx],
+  );
 
   return (
     <div className="min-h-screen" style={{ background }}>
@@ -67,6 +74,7 @@ export default function App() {
                 <button onClick={weather.refresh} className="underline hover:text-rose-300">riprova</button>
               </p>
             )}
+            <AlertsBanner alerts={alerts} />
             <CurrentCard
               current={current}
               today={consensus.daily[0]}
