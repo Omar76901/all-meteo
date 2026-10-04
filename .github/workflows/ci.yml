@@ -1,5 +1,6 @@
-# Pipeline unica: sicurezza + test + build su ogni PR e push su master;
-# il deploy su GitHub Pages parte solo da master e solo se tutto il resto è verde.
+# Pipeline unica in tre fasi, ognuna parte solo se la precedente è verde:
+#   1. sicurezza (gitleaks, Trivy, Bearer)  →  2. test e build (+ immagine Docker)  →  3. deploy Pages
+# Sulle PR girano le fasi 1 e 2; il deploy solo sui push su master.
 name: CI
 
 on:
@@ -17,6 +18,7 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
+  # ── Fase 1: sicurezza ──────────────────────────────────────────────
   gitleaks:
     name: Segreti (gitleaks)
     runs-on: ubuntu-latest
@@ -60,8 +62,10 @@ jobs:
           skip-path: node_modules,dist
           exit-code: 1
 
+  # ── Fase 2: test e build ───────────────────────────────────────────
   test:
     name: Audit, typecheck, test e build
+    needs: [gitleaks, trivy, bearer]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -95,6 +99,7 @@ jobs:
 
   docker:
     name: Immagine Docker (build + Trivy)
+    needs: [gitleaks, trivy, bearer]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -111,10 +116,11 @@ jobs:
           ignore-unfixed: true
           exit-code: 1
 
+  # ── Fase 3: deploy ─────────────────────────────────────────────────
   deploy:
     name: Deploy GitHub Pages
     if: github.event_name != 'pull_request' && github.ref == 'refs/heads/master'
-    needs: [gitleaks, trivy, bearer, test, docker]
+    needs: [test, docker]
     runs-on: ubuntu-latest
     permissions:
       pages: write

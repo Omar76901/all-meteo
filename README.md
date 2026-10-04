@@ -40,12 +40,14 @@ considera l'origine "sicura", quindi il service worker (cache offline / installa
 resta disattivato; il sito funziona comunque normalmente.
 
 ## CI
-Un'unica pipeline (`.github/workflows/ci.yml`), con job in parallelo:
-- **Sicurezza**: gitleaks (segreti in tutta la storia), Trivy (dipendenze, segreti e
-  misconfigurazioni, poi l'immagine Docker), Bearer (analisi statica del codice)
-- **Qualità**: `npm audit`, typecheck, test, build
-- **Deploy GitHub Pages**: solo su push su master e solo se tutti i job sono verdi
-  (richiede Pages attivo nelle impostazioni); sulle PR gira tutto tranne il deploy
+Un'unica pipeline (`.github/workflows/ci.yml`) in tre fasi, ognuna parte solo se la
+precedente è verde:
+1. **Sicurezza**: gitleaks (segreti in tutta la storia), Trivy (dipendenze, segreti e
+   misconfigurazioni), Bearer (analisi statica del codice)
+2. **Test e build**: `npm audit`, typecheck, test, build; build dell'immagine Docker
+   scansionata con Trivy
+3. **Deploy GitHub Pages**: solo su push su master (richiede Pages attivo nelle
+   impostazioni); sulle PR girano le fasi 1 e 2
 - **Dependabot**: aggiornamenti settimanali di npm e GitHub Actions, validati dalla CI
 
 ## Sicurezza
