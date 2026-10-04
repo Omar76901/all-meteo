@@ -3,7 +3,10 @@
 Dashboard meteo PWA che fonde più fonti in un dato di consenso.
 
 ## Fonti
-- Open-Meteo (modelli ECMWF, ICON, GFS) — https://open-meteo.com
+- Open-Meteo (modelli globali ECMWF, ICON, GFS) — https://open-meteo.com
+- Modelli locali ad alta risoluzione via Open-Meteo, usati solo dove coprono la località:
+  ICON-2I (Italia), ICON-CH2 (Svizzera/Alpi), ICON-D2 (Europa centrale), AROME (Francia),
+  UKV (Regno Unito), HRRR (USA), HRDPS (Canada), MSM (Giappone)
 - MET Norway — https://api.met.no
 - Radar: RainViewer — https://rainviewer.com · Basemap © OpenStreetMap © CARTO
 - Geocoding: Open-Meteo · Reverse: BigDataCloud
@@ -11,7 +14,8 @@ Dashboard meteo PWA che fonde più fonti in un dato di consenso.
 Nessuna API key richiesta.
 
 ## Funzioni
-- Consenso multi-fonte (mediana) con indice di accordo e confronto per fonte
+- Consenso multi-fonte (mediana pesata: i modelli locali contano doppio nei giorni che
+  coprono) con indice di accordo e confronto per fonte
 - Città preferite + geolocalizzazione
 - Grafici 48h (temperatura con banda di divergenza, precipitazioni, vento, pressione/umidità/UV)
 - Previsioni 7 giorni, radar animato espandibile
@@ -29,19 +33,23 @@ npm run build # produzione (dist/)
 ```bash
 docker compose up -d --build
 ```
-Il sito è servito da nginx sulla porta 8080: dal PC su http://localhost:8080, dagli altri
+Il sito è servito da nginx (immagine non-root) sulla porta 8080: dal PC su http://localhost:8080, dagli altri
 dispositivi della LAN su `http://<IP-del-PC>:8080` (se non risponde, consenti a Docker
 la porta 8080 nel firewall di Windows). Nota: da un IP LAN in HTTP il browser non
 considera l'origine "sicura", quindi il service worker (cache offline / installazione PWA)
 resta disattivato; il sito funziona comunque normalmente.
 
 ## CI
-- **CI**: su ogni PR e push su master — `npm audit`, typecheck, test, build
-- **Deploy GitHub Pages**: su push su master (richiede Pages attivo nelle impostazioni)
+Un'unica pipeline (`.github/workflows/ci.yml`), con job in parallelo:
+- **Sicurezza**: gitleaks (segreti in tutta la storia), Trivy (dipendenze, segreti e
+  misconfigurazioni, poi l'immagine Docker), Bearer (analisi statica del codice)
+- **Qualità**: `npm audit`, typecheck, test, build
+- **Deploy GitHub Pages**: solo su push su master e solo se tutti i job sono verdi
+  (richiede Pages attivo nelle impostazioni); sulle PR gira tutto tranne il deploy
 - **Dependabot**: aggiornamenti settimanali di npm e GitHub Actions, validati dalla CI
 
 ## Sicurezza
-Dipendenze con versioni esatte (`save-exact`), lockfile committato, `npm audit` in CI locale,
+Dipendenze con versioni esatte (`save-exact`), lockfile committato, `npm audit`, gitleaks, Trivy e Bearer in CI,
 CSP restrittiva in produzione, nessun asset CDN a runtime.
 
 ## Licenza

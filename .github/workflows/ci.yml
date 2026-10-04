@@ -1,15 +1,67 @@
+# Pipeline unica: sicurezza + test + build su ogni PR e push su master;
+# il deploy su GitHub Pages parte solo da master e solo se tutto il resto è verde.
 name: CI
 
 on:
   pull_request:
   push:
     branches: [master]
+  workflow_dispatch:
 
 permissions:
   contents: read
 
+concurrency:
+  group: ci-${{ github.ref }}
+  # sulle PR conta solo l'ultimo push; su master ogni commit va fino in fondo
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
+  gitleaks:
+    name: Segreti (gitleaks)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0 # tutta la storia, non solo l'ultimo commit
+
+      - uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e # v3.0.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_VERSION: 8.30.1
+          GITLEAKS_ENABLE_COMMENTS: false
+          GITLEAKS_ENABLE_UPLOAD_ARTIFACT: false
+
+  trivy:
+    name: Dipendenze e configurazione (Trivy)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          version: v0.75.0
+          scan-type: fs
+          scan-ref: .
+          scanners: vuln,secret,misconfig
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          exit-code: 1
+
+  bearer:
+    name: Analisi statica (Bearer)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: bearer/bearer-action@828eeb928ce2f4a7ca5ed57fb8b59508cb8c79bc # v2
+        with:
+          version: v2.1.1
+          skip-path: node_modules,dist
+          exit-code: 1
+
   test:
+    name: Audit, typecheck, test e build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -22,7 +74,7 @@ jobs:
       - name: Installa dipendenze (lockfile bloccato)
         run: npm ci
 
-      - name: Audit sicurezza
+      - name: Audit npm
         run: npm audit --audit-level=high
 
       - name: Typecheck
@@ -31,5 +83,48 @@ jobs:
       - name: Test
         run: npm test
 
+      # stessa build che va in produzione: base del progetto Pages anche sulle PR
       - name: Build
-        run: npm run build
+        run: npm run build -- --base=/${{ github.event.repository.name }}/
+
+      - name: Carica artefatto Pages
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/master'
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: dist
+
+  docker:
+    name: Immagine Docker (build + Trivy)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Build immagine
+        run: docker build -t allmeteo:ci .
+
+      - uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          version: v0.75.0
+          scan-type: image
+          image-ref: allmeteo:ci
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          exit-code: 1
+
+  deploy:
+    name: Deploy GitHub Pages
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/master'
+    needs: [gitleaks, trivy, bearer, test, docker]
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v5
