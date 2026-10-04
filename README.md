@@ -44,8 +44,7 @@ Un'unica pipeline (`.github/workflows/ci.yml`) in tre fasi, ognuna parte solo se
 precedente è verde:
 1. **Sicurezza**: gitleaks (segreti in tutta la storia), Trivy (dipendenze, segreti e
    misconfigurazioni), Bearer (analisi statica del codice)
-2. **Test e build**: `npm audit`, typecheck, test, build; build dell'immagine Docker
-   scansionata con Trivy
+2. **Test e build**: `npm audit`, typecheck, test, build
 3. **Deploy GitHub Pages**: solo su push su master (richiede Pages attivo nelle
    impostazioni); sulle PR girano le fasi 1 e 2
 - **Dependabot**: aggiornamenti settimanali di npm e GitHub Actions, validati dalla CI

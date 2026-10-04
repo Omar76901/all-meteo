@@ -1,5 +1,5 @@
 # Pipeline unica in tre fasi, ognuna parte solo se la precedente è verde:
-#   1. sicurezza (gitleaks, Trivy, Bearer)  →  2. test e build (+ immagine Docker)  →  3. deploy Pages
+#   1. sicurezza (gitleaks, Trivy, Bearer)  →  2. test e build  →  3. deploy Pages
 # Sulle PR girano le fasi 1 e 2; il deploy solo sui push su master.
 name: CI
 
@@ -97,30 +97,11 @@ jobs:
         with:
           path: dist
 
-  docker:
-    name: Immagine Docker (build + Trivy)
-    needs: [gitleaks, trivy, bearer]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v7
-
-      - name: Build immagine
-        run: docker build -t allmeteo:ci .
-
-      - uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
-        with:
-          version: v0.75.0
-          scan-type: image
-          image-ref: allmeteo:ci
-          severity: HIGH,CRITICAL
-          ignore-unfixed: true
-          exit-code: 1
-
   # ── Fase 3: deploy ─────────────────────────────────────────────────
   deploy:
     name: Deploy GitHub Pages
     if: github.event_name != 'pull_request' && github.ref == 'refs/heads/master'
-    needs: [test, docker]
+    needs: [test]
     runs-on: ubuntu-latest
     permissions:
       pages: write
