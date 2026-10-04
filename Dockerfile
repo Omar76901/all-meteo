@@ -8,9 +8,6 @@ RUN npm run build
 
 # Runtime: solo nginx con i file statici, come utente non-root (porta 8080)
 FROM nginxinc/nginx-unprivileged:1.29-alpine
-# l'immagine base resta spesso indietro sulle patch di sicurezza di Alpine
-USER root
-RUN apk upgrade --no-cache
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=build /app/dist /usr/share/nginx/html
 USER 101
