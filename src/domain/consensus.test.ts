@@ -1,5 +1,8 @@
 import { describe, expect, test } from 'vitest';
-import { buildConsensus, circularMeanDirection, median, mode } from './consensus';
+import {
+  LOCAL_WEIGHT, buildConsensus, circularMeanDirection, median, mode,
+  weightedCircularMean, weightedMedian, weightedMode,
+} from './consensus';
 import type { HourlyPoint, SourceForecast } from './types';
 
 const hour = (time: string, over: Partial<HourlyPoint>): HourlyPoint => ({
@@ -29,6 +32,24 @@ describe('median / mode / circularMeanDirection', () => {
     expect(circularMeanDirection([350, 10])!).toBeCloseTo(0, 5);
     expect(circularMeanDirection([90, 180])!).toBeCloseTo(135, 5);
     expect(circularMeanDirection([])).toBeNull();
+  });
+});
+
+describe('versioni pesate', () => {
+  const w = (value: number, weight: number) => ({ value, weight });
+  test('weightedMedian: il peso sposta la mediana verso la fonte che pesa di più', () => {
+    expect(weightedMedian([w(10, 1), w(20, 1), w(30, 2)])).toBe(25); // 10 | 20 | 30 30
+    expect(weightedMedian([w(10, 1), w(20, 1), w(30, 3)])).toBe(30);
+    expect(weightedMedian([w(5, 2)])).toBe(5);
+    expect(weightedMedian([])).toBeNull();
+  });
+  test('weightedMode: vince il peso totale, non il numero di fonti', () => {
+    expect(weightedMode([w(0, 1), w(0, 1), w(61, 3)])).toBe(61);
+    expect(weightedMode([w(0, 2), w(61, 2)])).toBe(61); // pari → il più severo
+  });
+  test('weightedCircularMean: pende verso la direzione col peso maggiore', () => {
+    expect(weightedCircularMean([w(0, 1), w(90, 1)])!).toBeCloseTo(45, 5);
+    expect(weightedCircularMean([w(0, 1), w(90, 3)])!).toBeGreaterThan(70);
   });
 });
 
@@ -82,6 +103,25 @@ describe('buildConsensus', () => {
   test('accordo con singola fonte (spread non calcolabile) → basso, non alto', () => {
     const c = buildConsensus([src('a', [hour(T0, { temperature: 20 })])])!;
     expect(c.agreement).toBe('basso');
+  });
+  test(`modelli locali pesano ${LOCAL_WEIGHT}x su orario e daily, solo dove coprono`, () => {
+    const daily = (tempMax: number) => [{
+      date: '2026-07-15', tempMin: 15, tempMax, precipitationSum: 0,
+      precipitationProbability: null, windSpeedMax: 10, weatherCode: 0, sunrise: null, sunset: null,
+    }];
+    const local = { ...src('loc', [hour(T0, { temperature: 26 })], daily(30)), local: true };
+    const c = buildConsensus([
+      src('a', [hour(T0, { temperature: 20 }), hour(T1, { temperature: 20 })], daily(24)),
+      src('b', [hour(T0, { temperature: 22 }), hour(T1, { temperature: 22 })], daily(25)),
+      local,
+    ])!;
+    // T0: 20 | 22 | 26 26 → mediana pesata 24 (senza peso sarebbe 22)
+    expect(c.hourly[0].temperature).toBe(24);
+    // T1: il locale è oltre il suo orizzonte → solo i globali
+    expect(c.hourly[1].temperature).toBe(21);
+    expect(c.hourly[1].temperatureBySource.loc).toBeNull();
+    // daily: 24 | 25 | 30 30 → 27.5
+    expect(c.daily[0].tempMax).toBe(27.5);
   });
   test('lista vuota → null; sourceIds e timezone propagati', () => {
     expect(buildConsensus([])).toBeNull();

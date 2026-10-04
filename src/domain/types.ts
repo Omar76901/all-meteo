@@ -34,9 +34,10 @@ export interface DailyPoint {
 }
 
 export interface SourceForecast {
-  sourceId: string;                      // 'ecmwf' | 'icon' | 'gfs' | 'met_norway'
+  sourceId: string;                      // 'ecmwf' | 'icon' | 'gfs' | 'met_norway' | id di LOCAL_MODELS
   sourceName: string;
   timezone: string | null;               // IANA tz della città, se nota
   hourly: HourlyPoint[];
   daily: DailyPoint[];                   // può essere [] (MET Norway)
+  local?: boolean;                       // modello regionale ad alta risoluzione: pesa di più nel consenso
 }
