@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- versione semplificata di icon.svg, leggibile a 16–32 px -->
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#1d4ed8"/><stop offset="1" stop-color="#0b1120"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="14" fill="url(#bg)"/>
+  <circle cx="23" cy="22" r="12" fill="#fbbf24"/>
+  <path d="M17 47a10 10 0 0 1 1.5-19.9A14.5 14.5 0 0 1 46 30a8.5 8.5 0 0 1-.5 17z" fill="#e2e8f0"/>
+  <rect x="22" y="50" width="5" height="10" rx="2.5" fill="#38bdf8" transform="rotate(20 24.5 55)"/>
+  <rect x="36" y="50" width="5" height="10" rx="2.5" fill="#38bdf8" transform="rotate(20 38.5 55)"/>
+</svg>
