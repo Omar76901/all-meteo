@@ -7,7 +7,23 @@ export const OPEN_METEO_MODELS = [
   { id: 'gfs', name: 'GFS (NOAA)', model: 'gfs_seamless' },
 ] as const;
 
-export type OpenMeteoModel = (typeof OPEN_METEO_MODELS)[number];
+/**
+ * Modelli regionali ad alta risoluzione (1–3 km), affidabili sui primi 2–5 giorni.
+ * Richiesti tutti insieme: Open-Meteo omette dalla risposta quelli che non coprono
+ * il punto, o li restituisce tutti null (AROME ai bordi del dominio).
+ */
+export const LOCAL_MODELS = [
+  { id: 'icon_2i', name: 'ICON-2I (Italia)', model: 'italia_meteo_arpae_icon_2i' },
+  { id: 'icon_ch2', name: 'ICON-CH2 (MeteoSvizzera)', model: 'meteoswiss_icon_ch2' },
+  { id: 'icon_d2', name: 'ICON-D2 (DWD)', model: 'icon_d2' },
+  { id: 'arome', name: 'AROME (Météo-France)', model: 'meteofrance_arome_france_hd' },
+  { id: 'ukv', name: 'UKV (Met Office)', model: 'ukmo_uk_deterministic_2km' },
+  { id: 'hrrr', name: 'HRRR (NOAA)', model: 'ncep_hrrr_conus' },
+  { id: 'hrdps', name: 'HRDPS (Canada)', model: 'gem_hrdps_continental' },
+  { id: 'msm', name: 'MSM (JMA)', model: 'jma_msm' },
+] as const;
+
+export interface OpenMeteoModel { id: string; name: string; model: string }
 
 const HOURLY_VARS = 'temperature_2m,apparent_temperature,precipitation,precipitation_probability,wind_speed_10m,wind_gusts_10m,wind_direction_10m,relative_humidity_2m,surface_pressure,uv_index,weather_code';
 const DAILY_VARS = 'temperature_2m_min,temperature_2m_max,precipitation_sum,precipitation_probability_max,wind_speed_10m_max,weather_code,sunrise,sunset';
@@ -61,9 +77,35 @@ export function parseOpenMeteo(data: unknown, m: OpenMeteoModel): SourceForecast
   return { sourceId: m.id, sourceName: m.name, timezone: d.timezone ?? null, hourly, daily };
 }
 
+const forecastUrl = (models: string, lat: number, lon: number) =>
+  `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}` +
+  `&hourly=${HOURLY_VARS}&daily=${DAILY_VARS}` +
+  `&models=${models}&forecast_days=7&timezone=auto&timeformat=unixtime&wind_speed_unit=kmh`;
+
 export async function fetchOpenMeteoModel(m: OpenMeteoModel, lat: number, lon: number): Promise<SourceForecast> {
-  const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}` +
-    `&hourly=${HOURLY_VARS}&daily=${DAILY_VARS}` +
-    `&models=${m.model}&forecast_days=7&timezone=auto&timeformat=unixtime&wind_speed_unit=kmh`;
-  return parseOpenMeteo(await fetchJson(url), m);
+  return parseOpenMeteo(await fetchJson(forecastUrl(m.model, lat, lon)), m);
+}
+
+/**
+ * Estrae i modelli locali da una risposta multi-modello. Oltre l'orizzonte del
+ * modello le ore sono null e i giorni coperti solo in parte hanno daily null:
+ * entrambi vengono scartati, così il consenso usa i globali per il resto.
+ */
+export function parseLocalModels(data: unknown): SourceForecast[] {
+  return LOCAL_MODELS
+    .map(m => {
+      const f = parseOpenMeteo(data, m);
+      return {
+        ...f,
+        local: true,
+        hourly: f.hourly.filter(h => h.temperature !== null),
+        daily: f.daily.filter(d => d.tempMin !== null && d.tempMax !== null),
+      };
+    })
+    .filter(f => f.hourly.length > 0);
+}
+
+export async function fetchLocalModels(lat: number, lon: number): Promise<SourceForecast[]> {
+  const models = LOCAL_MODELS.map(m => m.model).join(',');
+  return parseLocalModels(await fetchJson(forecastUrl(models, lat, lon)));
 }

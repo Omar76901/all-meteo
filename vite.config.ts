@@ -43,7 +43,7 @@ export default defineConfig({
     cspPlugin(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['icon.svg', 'apple-touch-icon.png'],
+      includeAssets: ['icon.svg', 'favicon.svg', 'favicon.ico', 'apple-touch-icon.png'],
       manifest: {
         name: 'allMeteo',
         short_name: 'allMeteo',

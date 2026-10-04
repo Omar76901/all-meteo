@@ -33,7 +33,17 @@ export function SourcesTable({ sources, failed, consensus }: Props) {
             const p = s.hourly.find(h => h.time === nowTime);
             return (
               <tr key={s.sourceId} className="border-t border-slate-800">
-                <td className="py-1.5 pr-2">{SOURCE_LABELS[s.sourceId] ?? s.sourceName}</td>
+                <td className="py-1.5 pr-2">
+                  {SOURCE_LABELS[s.sourceId] ?? s.sourceName}
+                  {s.local && (
+                    <span
+                      className="ml-1.5 text-[9px] uppercase tracking-wider text-emerald-300 border border-emerald-700 rounded-full px-1.5 py-px"
+                      title="Modello regionale ad alta risoluzione: pesa doppio nel consenso"
+                    >
+                      locale
+                    </span>
+                  )}
+                </td>
                 <td className="py-1.5 pr-2 text-emerald-400">● ok</td>
                 <td className="py-1.5 pr-2 text-amber-300">{fmt(p?.temperature, '°')}</td>
                 <td className="py-1.5 pr-2 text-sky-400">{fmt(p?.precipitation, ' mm')}</td>

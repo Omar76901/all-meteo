@@ -38,3 +38,23 @@ export const openMeteoSuffixedFixture = {
   },
   daily: { time: [1784073600], temperature_2m_max_ecmwf_ifs025: [24.0] },
 };
+
+/**
+ * Risposta multi-modello dei locali: ICON-2I copre 2 ore su 3 e un giorno pieno,
+ * AROME c'è ma tutto null (bordo dominio), gli altri modelli sono omessi.
+ */
+export const localModelsFixture = {
+  latitude: 38.12, longitude: 13.36, timezone: 'Europe/Rome',
+  hourly: {
+    time: [1784116800, 1784120400, 1784124000],
+    temperature_2m_italia_meteo_arpae_icon_2i: [26.1, 26.8, null],
+    precipitation_italia_meteo_arpae_icon_2i: [0, 0.4, null],
+    temperature_2m_meteofrance_arome_france_hd: [null, null, null],
+  },
+  daily: {
+    time: [1784073600, 1784160000],
+    temperature_2m_min_italia_meteo_arpae_icon_2i: [19.5, null],
+    temperature_2m_max_italia_meteo_arpae_icon_2i: [29.0, null],
+    temperature_2m_max_meteofrance_arome_france_hd: [null, null],
+  },
+};

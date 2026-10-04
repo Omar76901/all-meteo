@@ -1,0 +1,8 @@
+{
+  "a91a94e9f94f92bc727a39f57f674597_0": {
+    "ignored_at": "2026-10-04T17:15:00Z",
+    "author": "Omar Nespoli",
+    "comment": "scripts/generate-icons.mjs logga solo il percorso del file generato in build: nessun dato sensibile",
+    "false_positive": true
+  }
+}
