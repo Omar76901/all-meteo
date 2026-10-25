@@ -63,3 +63,21 @@ describe('anteprima ultime previsioni', () => {
     expect(getSnapshot(milano, savedAt.getTime() + 13 * 3600_000)).toBeNull();
   });
 });
+
+describe('dati salvati alterati', () => {
+  test('preferiti e ultima città senza coordinate valide vengono ignorati', () => {
+    localStorage.setItem('allmeteo:favorites', JSON.stringify([milano, { name: 'x' }, null, { name: 'y', lat: '45', lon: 9 }]));
+    expect(getFavorites()).toEqual([milano]);
+    localStorage.setItem('allmeteo:favorites', JSON.stringify({ not: 'an array' }));
+    expect(getFavorites()).toEqual([]);
+    localStorage.setItem('allmeteo:lastCity', JSON.stringify({ name: 'Roma', lat: 999, lon: 12 }));
+    expect(getLastCity()).toBeNull();
+  });
+  test('anteprima con forma sbagliata → null invece di un errore più avanti', () => {
+    const savedAt = new Date('2026-07-15T12:00:00Z');
+    setSnapshot(milano, [], [], savedAt);
+    const raw = JSON.parse(localStorage.getItem('allmeteo:snapshot')!);
+    localStorage.setItem('allmeteo:snapshot', JSON.stringify({ ...raw, sources: [{ sourceId: 'x', hourly: 'nope', daily: [] }] }));
+    expect(getSnapshot(milano, savedAt.getTime())).toBeNull();
+  });
+});

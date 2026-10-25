@@ -1,5 +1,5 @@
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
-import { afterEach, beforeEach, describe, expect, test } from 'vitest';
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { ThemeProvider } from '../state/theme';
 import { UnitsProvider } from '../state/units';
 import { Header } from './Header';
@@ -41,5 +41,23 @@ describe('Header · tema', () => {
     expect(localStorage.getItem('allmeteo:theme')).toBe('light');
     fireEvent.click(screen.getByLabelText(/Tema: chiaro/));
     expect(screen.getByLabelText(/Tema: come il sistema/)).toBeTruthy();
+  });
+});
+
+describe('Header · posizione GPS', () => {
+  test('arrotonda le coordinate a ~1 km prima di usarle', async () => {
+    const getCurrentPosition = vi.fn((ok: PositionCallback) =>
+      ok({ coords: { latitude: 45.698312, longitude: 9.677345 } } as GeolocationPosition));
+    vi.stubGlobal('navigator', { ...navigator, geolocation: { getCurrentPosition } });
+    vi.stubGlobal('fetch', vi.fn(async () => new Response(JSON.stringify({}), { status: 500 })));
+    const onSelectCity = vi.fn();
+    try {
+      render(<Header city={null} onSelectCity={onSelectCity} />);
+      fireEvent.click(screen.getByLabelText('Usa la mia posizione'));
+      await vi.waitFor(() => expect(onSelectCity).toHaveBeenCalled());
+      expect(onSelectCity.mock.calls[0][0]).toMatchObject({ lat: 45.7, lon: 9.68 });
+    } finally {
+      vi.unstubAllGlobals();
+    }
   });
 });

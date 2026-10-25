@@ -11,6 +11,9 @@ interface Props { city: City | null; onSelectCity: (c: City) => void }
 
 const next = <T,>(list: T[], current: T) => list[(list.indexOf(current) + 1) % list.length];
 
+/** Due decimali ≈ 1 km. */
+const roundCoord = (v: number) => Math.round(v * 100) / 100;
+
 const THEME_ICON: Record<ThemeSetting, string> = { dark: '🌙', light: '☀️', auto: '🌓' };
 const THEME_LABEL: Record<ThemeSetting, string> = { dark: 'scuro', light: 'chiaro', auto: 'come il sistema' };
 
@@ -27,10 +30,13 @@ export function Header({ city, onSelectCity }: Props) {
     setGpsError(null);
     navigator.geolocation.getCurrentPosition(
       async pos => {
+        // ~1 km di precisione basta per il meteo e non espone l'indirizzo esatto
+        // ai servizi esterni né nell'URL condivisibile
+        const lat = roundCoord(pos.coords.latitude), lon = roundCoord(pos.coords.longitude);
         try {
-          onSelectCity(await reverseGeocode(pos.coords.latitude, pos.coords.longitude));
+          onSelectCity(await reverseGeocode(lat, lon));
         } catch {
-          onSelectCity({ name: 'Posizione attuale', lat: pos.coords.latitude, lon: pos.coords.longitude });
+          onSelectCity({ name: 'Posizione attuale', lat, lon });
         } finally { setGpsBusy(false); }
       },
       () => { setGpsError('Permesso posizione negato: usa la ricerca'); setGpsBusy(false); },

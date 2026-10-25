@@ -14,8 +14,16 @@ function readJson<T>(key: string, fallback: T): T {
   }
 }
 
+/** I dati salvati possono essere vecchi o alterati: una città senza coordinate valide manderebbe in errore la pagina. */
+export function isCity(v: unknown): v is City {
+  const c = v as City;
+  return typeof c === 'object' && c !== null && typeof c.name === 'string'
+    && Number.isFinite(c.lat) && Number.isFinite(c.lon) && Math.abs(c.lat) <= 90 && Math.abs(c.lon) <= 180;
+}
+
 export function getFavorites(): City[] {
-  return readJson<City[]>(FAV_KEY, []);
+  const favs = readJson<unknown>(FAV_KEY, []);
+  return Array.isArray(favs) ? favs.filter(isCity) : [];
 }
 
 export function isFavorite(c: City, favs: City[] = getFavorites()): boolean {
@@ -34,7 +42,8 @@ export function toggleFavorite(c: City): City[] {
 }
 
 export function getLastCity(): City | null {
-  return readJson<City | null>(LAST_KEY, null);
+  const c = readJson<unknown>(LAST_KEY, null);
+  return isCity(c) ? c : null;
 }
 
 export function setLastCity(c: City): void {
@@ -56,10 +65,17 @@ export interface WeatherSnapshot {
   failedSources: { id: string; name: string }[];
 }
 
+/** Forma minima perché il consenso possa lavorarci senza andare in errore. */
+function isSnapshotShape(s: WeatherSnapshot): boolean {
+  return Array.isArray(s.failedSources) && Array.isArray(s.sources) && s.sources.every(f =>
+    typeof f?.sourceId === 'string' && Array.isArray(f.hourly) && Array.isArray(f.daily)
+    && f.hourly.every(h => typeof h?.time === 'string'));
+}
+
 /** Ultime previsioni scaricate per questa città, da mostrare subito all'apertura. */
 export function getSnapshot(c: Pick<City, 'lat' | 'lon'>, now = Date.now()): WeatherSnapshot | null {
   const snap = readJson<WeatherSnapshot | null>(SNAPSHOT_KEY, null);
-  if (!snap || snap.city !== cityKey(c)) return null;
+  if (!snap || snap.city !== cityKey(c) || !isSnapshotShape(snap)) return null;
   return now - Date.parse(snap.savedAt) < SNAPSHOT_MAX_AGE_MS ? snap : null;
 }
 

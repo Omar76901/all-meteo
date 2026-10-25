@@ -16,3 +16,17 @@ describe('città nell\'URL', () => {
     expect(getUrlCity('?lat=95&lon=9')).toBeNull();
   });
 });
+
+describe('nome della città da un link', () => {
+  test('toglie caratteri di controllo e di direzione del testo', () => {
+    expect(getUrlCity('?lat=45&lon=9&name=' + encodeURIComponent('Mi\u202Elano\u0000'))?.name).toBe('Milano');
+  });
+  test('tronca i nomi troppo lunghi', () => {
+    const name = getUrlCity('?lat=45&lon=9&name=' + 'A'.repeat(500))!.name;
+    expect(name.length).toBe(60);
+    expect(name.endsWith('…')).toBe(true);
+  });
+  test('solo spazi o caratteri invisibili → coordinate', () => {
+    expect(getUrlCity('?lat=45&lon=9&name=' + encodeURIComponent(' \u200B '))?.name).toBe('45.00, 9.00');
+  });
+});
