@@ -16,7 +16,7 @@ Nessuna API key richiesta.
 ## Funzioni
 - Consenso multi-fonte (mediana pesata: i modelli locali contano doppio nei giorni che
   coprono) con indice di accordo e confronto per fonte
-- Città preferite + geolocalizzazione
+- Città preferite + geolocalizzazione; città nell'URL (`?lat=..&lon=..&name=..`) per link condivisibili
 - Grafici 48h (temperatura con banda di divergenza, precipitazioni, vento, pressione/umidità/UV)
 - Previsioni 7 giorni, radar animato espandibile
 - PWA installabile con cache offline, sfondo dinamico per meteo/ora

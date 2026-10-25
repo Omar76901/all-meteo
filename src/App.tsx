@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { AlertsBanner } from './components/AlertsBanner';
 import { ChartsSection } from './components/ChartsSection';
 import { CurrentCard } from './components/CurrentCard';
@@ -13,14 +13,18 @@ import { currentHourIndex, formatTime } from './domain/timeUtils';
 import type { City } from './domain/types';
 import { getWeatherInfo } from './domain/weatherCodes';
 import { getLastCity, setLastCity } from './state/settings';
+import { getUrlCity, setUrlCity } from './state/urlCity';
 import { useWeather } from './state/useWeather';
 
 export default function App() {
-  const [city, setCity] = useState<City | null>(getLastCity);
+  // un link con la città nell'URL vince sull'ultima città usata
+  const [city, setCity] = useState<City | null>(() => getUrlCity() ?? getLastCity());
   const weather = useWeather(city);
   const { consensus } = weather;
 
   const selectCity = (c: City) => { setCity(c); setLastCity(c); };
+
+  useEffect(() => { if (city) setUrlCity(city); }, [city]);
 
   const nowIdx = consensus ? currentHourIndex(consensus.hourly.map(h => h.time)) : 0;
   const current = consensus?.hourly[nowIdx] ?? null;
