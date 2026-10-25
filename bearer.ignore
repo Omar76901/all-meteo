@@ -4,5 +4,17 @@
     "author": "Omar Nespoli",
     "comment": "scripts/generate-icons.mjs logga solo il percorso del file generato in build: nessun dato sensibile",
     "false_positive": true
+  },
+  "7b5d42363ae97022085be45043aea6c2_0": {
+    "ignored_at": "2026-10-25T10:22:25Z",
+    "author": "Omar Nespoli",
+    "comment": "scripts/check-upstreams.mjs logga solo il nome del servizio controllato e l'errore HTTP/di formato: nessun dato sensibile",
+    "false_positive": true
+  },
+  "7b5d42363ae97022085be45043aea6c2_1": {
+    "ignored_at": "2026-10-25T10:22:25Z",
+    "author": "Omar Nespoli",
+    "comment": "scripts/check-upstreams.mjs logga solo il nome del servizio controllato e l'errore HTTP/di formato: nessun dato sensibile",
+    "false_positive": true
   }
 }
