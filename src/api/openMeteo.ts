@@ -82,8 +82,20 @@ const forecastUrl = (models: string, lat: number, lon: number) =>
   `&hourly=${HOURLY_VARS}&daily=${DAILY_VARS}` +
   `&models=${models}&forecast_days=7&timezone=auto&timeformat=unixtime&wind_speed_unit=kmh`;
 
-export async function fetchOpenMeteoModel(m: OpenMeteoModel, lat: number, lon: number): Promise<SourceForecast> {
-  return parseOpenMeteo(await fetchJson(forecastUrl(m.model, lat, lon)), m);
+/**
+ * Estrae i modelli globali da una sola risposta multi-modello. Un modello senza
+ * nessuna temperatura (non disponibile in quel momento) viene scartato: chi chiama
+ * lo segnala tra le fonti fallite.
+ */
+export function parseGlobalModels(data: unknown): SourceForecast[] {
+  return OPEN_METEO_MODELS
+    .map(m => parseOpenMeteo(data, m))
+    .filter(f => f.hourly.some(h => h.temperature !== null));
+}
+
+export async function fetchGlobalModels(lat: number, lon: number): Promise<SourceForecast[]> {
+  const models = OPEN_METEO_MODELS.map(m => m.model).join(',');
+  return parseGlobalModels(await fetchJson(forecastUrl(models, lat, lon)));
 }
 
 /**

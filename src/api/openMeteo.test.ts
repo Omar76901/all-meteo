@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest';
-import { OPEN_METEO_MODELS, parseLocalModels, parseOpenMeteo } from './openMeteo';
+import { OPEN_METEO_MODELS, parseGlobalModels, parseLocalModels, parseOpenMeteo } from './openMeteo';
 import { localModelsFixture, openMeteoFixture, openMeteoSuffixedFixture } from './__fixtures__/openMeteo';
 
 const ecmwf = OPEN_METEO_MODELS.find(m => m.id === 'ecmwf')!;
@@ -45,5 +45,23 @@ describe('parseLocalModels', () => {
   });
   test('nessun modello locale disponibile → lista vuota', () => {
     expect(parseLocalModels({ hourly: { time: [1784116800] }, daily: { time: [] } })).toEqual([]);
+  });
+});
+
+describe('parseGlobalModels', () => {
+  test('una risposta multi-modello produce una fonte per modello disponibile', () => {
+    const data = {
+      timezone: 'Europe/Rome',
+      hourly: {
+        time: [1784116800],
+        temperature_2m_ecmwf_ifs025: [21.0],
+        temperature_2m_icon_seamless: [21.6],
+        temperature_2m_gfs_seamless: [null],
+      },
+      daily: { time: [] },
+    };
+    const fs = parseGlobalModels(data);
+    expect(fs.map(f => f.sourceId)).toEqual(['ecmwf', 'icon']);
+    expect(fs[1].hourly[0].temperature).toBe(21.6);
   });
 });
