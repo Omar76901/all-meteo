@@ -1,5 +1,5 @@
 import { act, renderHook, waitFor } from '@testing-library/react';
-import { describe, expect, test, vi } from 'vitest';
+import { beforeEach, describe, expect, test, vi } from 'vitest';
 import type { SourceForecast } from '../domain/types';
 
 const okSource: SourceForecast = {
@@ -25,7 +25,10 @@ function makeSource(temperature: number): SourceForecast {
 const fetchAllSources = vi.fn();
 vi.mock('../api/sources', () => ({ fetchAllSources: (...a: unknown[]) => fetchAllSources(...a) }));
 
+import { setSnapshot } from './settings';
 import { useWeather } from './useWeather';
+
+beforeEach(() => localStorage.clear());
 
 const milano = { name: 'Milano', lat: 45.4643, lon: 9.1895 };
 
@@ -121,5 +124,23 @@ describe('useWeather', () => {
     });
 
     expect(result.current.consensus!.hourly[0].temperature).toBe(99);
+  });
+  test('al cambio città mostra subito le previsioni salvate, poi le aggiorna', async () => {
+    setSnapshot(milano, [makeSource(5)], [], new Date());
+    let resolve: (v: unknown) => void;
+    fetchAllSources.mockReturnValueOnce(new Promise(r => { resolve = r; }));
+    const { result } = renderHook(() => useWeather(milano));
+    expect(result.current.status).toBe('ready');
+    expect(result.current.consensus!.hourly[0].temperature).toBe(5);
+    await act(async () => resolve({ ok: [makeSource(7)], failed: [] }));
+    expect(result.current.consensus!.hourly[0].temperature).toBe(7);
+  });
+  test('salva le previsioni scaricate per la prossima apertura', async () => {
+    fetchAllSources.mockResolvedValue({ ok: [makeSource(12)], failed: [] });
+    const { result } = renderHook(() => useWeather(milano));
+    await waitFor(() => expect(result.current.status).toBe('ready'));
+    fetchAllSources.mockReturnValueOnce(new Promise(() => {}));
+    const { result: reopened } = renderHook(() => useWeather(milano));
+    expect(reopened.current.consensus!.hourly[0].temperature).toBe(12);
   });
 });
