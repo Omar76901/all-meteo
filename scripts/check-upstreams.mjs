@@ -74,7 +74,8 @@ const checks = {
 let failed = 0;
 for (const [name, check] of Object.entries(checks)) {
   try {
-    await check();
+    // un secondo tentativo: un errore di rete isolato del runner non deve mandare una mail di allarme
+    await check().catch(() => new Promise(r => setTimeout(r, 10_000)).then(check));
     console.log(`ok    ${name}`);
   } catch (e) {
     failed++;
