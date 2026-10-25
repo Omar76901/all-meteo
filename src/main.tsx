@@ -17,24 +17,19 @@ const framed = (() => {
   }
 })();
 
-const root = document.getElementById('root')!;
-if (framed) {
-  const link = document.createElement('a');
-  // indirizzo fisso dell'app, non l'URL corrente: chi incornicia la pagina controlla i parametri
-  link.href = import.meta.env.BASE_URL;
-  link.target = '_blank';
-  link.rel = 'noopener noreferrer';
-  link.textContent = 'Apri allMeteo in una nuova scheda';
-  link.style.cssText = 'color:#38bdf8;font-family:system-ui;display:block;padding:2rem;text-align:center';
-  root.replaceChildren(link);
-} else {
-  createRoot(root).render(
-    <StrictMode>
+createRoot(document.getElementById('root')!).render(
+  <StrictMode>
+    {framed ? (
+      // indirizzo fisso dell'app, non l'URL corrente: chi incornicia la pagina ne controlla i parametri
+      <a href={import.meta.env.BASE_URL} target="_blank" rel="noopener noreferrer" className="block p-8 text-center text-sky-400">
+        Apri allMeteo in una nuova scheda
+      </a>
+    ) : (
       <ThemeProvider>
         <UnitsProvider>
           <App />
         </UnitsProvider>
       </ThemeProvider>
-    </StrictMode>,
-  )
-}
+    )}
+  </StrictMode>,
+)
