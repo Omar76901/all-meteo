@@ -8,7 +8,7 @@ Italian; the labels below are quoted as they appear.
 | Control | Behaviour |
 |---|---|
 | **Cerca città…** | City search (Open-Meteo geocoding), from 2 characters, 300 ms debounce, up to 6 results |
-| 📍 | Uses the browser's geolocation, then reverse-geocodes the name (falls back to "Posizione attuale") |
+| 📍 | Uses the browser's geolocation, rounded to ~1 km for privacy, then reverse-geocodes the name (falls back to "Posizione attuale") |
 | °C / °F | Cycles the temperature unit |
 | km/h → m/s → nodi → mph | Cycles the wind unit |
 | 🌙 / ☀️ / 🌓 | Cycles dark, light and follow-system theme |

@@ -21,8 +21,11 @@ Hardening of the workflow itself:
 
 - `permissions: contents: read` at the top level; only the deploy job gets
   `pages: write` and `id-token: write`.
-- Third-party actions (gitleaks, Trivy, Bearer) are pinned to a **commit SHA**, not a tag,
-  and the tool versions are pinned too.
+- **Every action is pinned to a commit SHA**, not a tag (tags can be moved), with the
+  version in a comment; Dependabot updates both. The tool versions (gitleaks, Trivy,
+  Bearer) are pinned too.
+- Every checkout uses `persist-credentials: false`, so the `GITHUB_TOKEN` is not left in
+  `.git/config` while `npm ci` and the scanners run.
 - On pull requests only the latest push runs (`cancel-in-progress`); on `master` every
   commit runs to the end.
 
@@ -67,13 +70,32 @@ before it can be merged.
 | Measure | Where |
 |---|---|
 | Strict Content Security Policy, no third-party scripts, no runtime CDN | `vite.config.ts` → see [deployment.md](deployment.md#content-security-policy) |
+| React escapes all rendered text; no `innerHTML`, `eval` or `dangerouslySetInnerHTML` anywhere | `src/` |
 | No secrets: every API used is public and key-less | — |
 | No backend, no cookies, no accounts; all user data stays in the browser's `localStorage` | `src/state/` |
 | Coordinates are sent only to the weather/geocoding services that need them | `src/api/` |
-| Inputs from the URL are validated (numeric, in range) before use | `src/state/urlCity.ts` |
+| **GPS position rounded to ~1 km** (2 decimals) before it is sent anywhere or written in the URL | `Header.tsx` |
+| **Referrer policy** `strict-origin-when-cross-origin`: third parties never see the URL with the city | `index.html` |
+| **Shareable links are untrusted input**: coordinates validated (numeric, in range); the name stripped of control and bidi-override characters and capped at 60 characters | `src/state/urlCity.ts` |
+| **Stored data is validated on read** (favourites, last city, snapshot), so tampered storage cannot crash the page | `src/state/settings.ts` |
+| **Radar responses are validated**: tile host must be `tilecache.rainviewer.com`, frame paths must match `/v2/radar/<id>` | `src/api/rainviewer.ts` |
+| **Anti-clickjacking**: inside any iframe the app does not start and only shows a link that opens it in a new tab (GitHub Pages cannot send `frame-ancestors`) | `src/main.tsx` |
+| Security headers on Docker/nginx: `frame-ancestors 'none'`, `X-Frame-Options`, `nosniff`, referrer policy, COOP, Permissions-Policy (geolocation only), `server_tokens off` | `nginx-security-headers.conf` |
 | Exact dependency versions + committed lockfile + `npm ci` | `.npmrc`, `package-lock.json` |
 | Non-root nginx image for Docker | `Dockerfile` |
 | Request timeout (8 s) on every API call | `src/api/http.ts` |
+
+### Known limits
+
+- **GitHub Pages does not allow custom HTTP headers.** HSTS is provided by GitHub, but
+  `frame-ancestors`, `Permissions-Policy` and `X-Content-Type-Options` cannot be set. The
+  CSP is delivered as a `<meta>` tag and clickjacking is handled in JavaScript. Hosting on
+  a platform with configurable headers (or the Docker setup) closes this gap.
+- **Shared origin.** Every GitHub Pages project of the same account is served from
+  `omar76901.github.io`, so they share `localStorage`. Only publish trusted projects there,
+  or use a custom domain for allMeteo.
+- **`style-src 'unsafe-inline'`** is needed for inline styles (dynamic background, Leaflet,
+  Recharts). Scripts remain strictly `'self'`.
 
 ## Handling findings
 

@@ -144,7 +144,8 @@ React 19 · TypeScript · Vite · Tailwind CSS v4 · Recharts · Leaflet · Work
 
 - **Three-stage CI**: gitleaks, Trivy and Bearer first; then `npm audit`, typecheck,
   tests and build; then deploy to GitHub Pages
-- **Strict Content Security Policy**, no third-party scripts, no CDN at runtime
+- **Strict Content Security Policy**, no third-party scripts, no CDN at runtime; validated
+  input from links, storage and APIs; anti-clickjacking; GPS rounded to ~1 km
 - **Pinned dependencies** with a committed lockfile, updated weekly by Dependabot
 - **Daily upstream check** that catches silent API changes, such as a tile server
   answering `200 OK` with an "API KEY REQUIRED" image

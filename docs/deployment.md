@@ -59,7 +59,24 @@ On Windows you may need to allow port 8080 in the firewall for Docker.
 | `/assets/` | `Cache-Control: public, max-age=31536000, immutable`: files have a content hash in their name |
 | `/` | SPA fallback: `try_files $uri $uri/ /index.html` |
 
-gzip is enabled for CSS, JS, JSON, SVG and the web manifest.
+gzip is enabled for CSS, JS, JSON, SVG and the web manifest, and `server_tokens off`
+hides the nginx version.
+
+Every response also carries the security headers from `nginx-security-headers.conf`
+(copied to `/etc/nginx/security-headers.conf` by the Dockerfile):
+
+| Header | Value |
+|---|---|
+| `Content-Security-Policy` | `frame-ancestors 'none'` (the rest of the CSP is in the `<meta>` tag, where `frame-ancestors` is ignored) |
+| `X-Frame-Options` | `DENY` |
+| `X-Content-Type-Options` | `nosniff` |
+| `Referrer-Policy` | `strict-origin-when-cross-origin` |
+| `Cross-Origin-Opener-Policy` | `same-origin` |
+| `Permissions-Policy` | only `geolocation=(self)`; camera, microphone, payment, USB, Bluetooth, serial disabled |
+
+The file is `include`d in the server block **and** in every location that has its own
+`add_header`: in nginx, an `add_header` inside a location discards all the ones inherited
+from the server.
 
 ## Content Security Policy
 

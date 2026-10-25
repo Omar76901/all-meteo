@@ -73,7 +73,7 @@ all-meteo/
 │   └── index.css                     # Tailwind, panels, light theme palette
 ├── index.html
 ├── vite.config.ts                    # plugins, CSP, PWA manifest, Workbox caching
-├── Dockerfile, docker-compose.yml, nginx.conf
+├── Dockerfile, docker-compose.yml, nginx.conf, nginx-security-headers.conf
 └── bearer.ignore                     # reviewed Bearer false positives
 ```
 
