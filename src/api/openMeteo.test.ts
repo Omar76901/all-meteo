@@ -65,3 +65,14 @@ describe('parseGlobalModels', () => {
     expect(fs[1].hourly[0].temperature).toBe(21.6);
   });
 });
+
+describe('date dei giorni', () => {
+  test('la mezzanotte locale (UTC+1) resta sul giorno giusto', () => {
+    // 1792882800 = 2026-10-24T23:00Z = 2026-10-25 00:00 a Roma
+    const f = parseOpenMeteo(
+      { timezone: 'Europe/Rome', utc_offset_seconds: 3600, hourly: { time: [] }, daily: { time: [1792882800], temperature_2m_max: [15] } },
+      OPEN_METEO_MODELS[0],
+    );
+    expect(f.daily[0].date).toBe('2026-10-25');
+  });
+});

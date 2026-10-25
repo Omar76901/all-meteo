@@ -29,7 +29,7 @@ const HOURLY_VARS = 'temperature_2m,apparent_temperature,precipitation,precipita
 const DAILY_VARS = 'temperature_2m_min,temperature_2m_max,precipitation_sum,precipitation_probability_max,wind_speed_10m_max,weather_code,sunrise,sunset';
 
 interface Block { time?: number[]; [key: string]: number[] | undefined }
-interface OMResponse { timezone?: string; hourly?: Block; daily?: Block }
+interface OMResponse { timezone?: string; utc_offset_seconds?: number; hourly?: Block; daily?: Block }
 
 const iso = (epoch: number) => new Date(epoch * 1000).toISOString();
 
@@ -63,7 +63,8 @@ export function parseOpenMeteo(data: unknown, m: OpenMeteoModel): SourceForecast
   }));
 
   const daily: DailyPoint[] = (dy?.time ?? []).map((t, i) => ({
-    date: iso(t).slice(0, 10),
+    // i giorni arrivano come mezzanotte locale in unixtime: in UTC cadrebbero sul giorno prima
+    date: iso(t + (d.utc_offset_seconds ?? 0)).slice(0, 10),
     tempMin: at(cd('temperature_2m_min'), i),
     tempMax: at(cd('temperature_2m_max'), i),
     precipitationSum: at(cd('precipitation_sum'), i),
