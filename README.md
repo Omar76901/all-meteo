@@ -47,6 +47,9 @@ precedente è verde:
 2. **Test e build**: `npm audit`, typecheck, test, build
 3. **Deploy GitHub Pages**: solo su push su master (richiede Pages attivo nelle
    impostazioni); sulle PR girano le fasi 1 e 2
+- **Servizi esterni** (`.github/workflows/upstream-check.yml`): ogni giorno verifica API meteo,
+  radar e tile della mappa (anche le immagini segnaposto tipo "API KEY REQUIRED"); se qualcosa
+  cambia il job fallisce e arriva una mail. In locale: `node scripts/check-upstreams.mjs`
 - **Dependabot**: aggiornamenti settimanali di npm e GitHub Actions, validati dalla CI
 
 ## Sicurezza
