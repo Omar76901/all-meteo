@@ -1,6 +1,9 @@
 import L from 'leaflet';
 import { useEffect, useRef, useState } from 'react';
-import { fetchRadarFrames, type RadarFrame } from '../api/rainviewer';
+import { fetchRadarFrames, formatSpan, radarAge, type RadarFrame } from '../api/rainviewer';
+
+/** RainViewer pubblica un nuovo frame ogni 10 minuti. */
+const RADAR_REFRESH_MS = 10 * 60 * 1000;
 
 interface Props { lat: number; lon: number }
 
@@ -15,10 +18,10 @@ export function RadarMap({ lat, lon }: Props) {
   const [playing, setPlaying] = useState(true);
   const [expanded, setExpanded] = useState(false);
   const [error, setError] = useState(false);
+  const [now, setNow] = useState(Date.now);
 
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
-    let cancelled = false;
     const map = L.map(containerRef.current, { zoomControl: false, maxZoom: 12 }).setView([lat, lon], 7);
     // CARTO ora richiede una API key: Esri Dark Gray è senza chiave e ha lo stesso stile scuro
     const esri = 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas';
@@ -36,20 +39,33 @@ export function RadarMap({ lat, lon }: Props) {
     }).addTo(map);
     mapRef.current = map;
 
-    fetchRadarFrames()
+    return () => { map.remove(); mapRef.current = null; markerRef.current = null; layersRef.current = []; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    const load = () => fetchRadarFrames()
       .then(({ host, frames, pastCount }) => {
-        if (cancelled) return;
+        const map = mapRef.current;
+        if (cancelled || !map) return;
+        layersRef.current.forEach(l => l.remove());
         layersRef.current = frames.map(f =>
           // RainViewer serve le tile solo fino a zoom 7: oltre Leaflet ingrandisce quelle
           L.tileLayer(`${host}${f.path}/256/{z}/{x}/{y}/2/1_1.png`, { opacity: 0, maxNativeZoom: 7, maxZoom: 12 }).addTo(map));
         setFrames(frames);
         setPastCount(pastCount);
         setFrameIdx(Math.max(0, pastCount - 1));
+        setError(false);
       })
-      .catch(() => { if (!cancelled) setError(true); });
-
-    return () => { cancelled = true; map.remove(); mapRef.current = null; markerRef.current = null; layersRef.current = []; };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+      // se fallisce un aggiornamento restano i frame già caricati
+      .catch(() => { if (!cancelled && layersRef.current.length === 0) setError(true); });
+    void load();
+    const refresh = setInterval(() => {
+      if (document.visibilityState === 'visible') void load();
+    }, RADAR_REFRESH_MS);
+    const tick = setInterval(() => setNow(Date.now()), 60_000);
+    return () => { cancelled = true; clearInterval(refresh); clearInterval(tick); };
   }, []);
 
   useEffect(() => {
@@ -77,11 +93,20 @@ export function RadarMap({ lat, lon }: Props) {
   const frameLabel = frame
     ? new Intl.DateTimeFormat('it-IT', { hour: '2-digit', minute: '2-digit' }).format(new Date(frame.time * 1000))
     : '…';
+  const latest = pastCount > 0 ? frames[pastCount - 1] : undefined;
+  const age = latest ? radarAge(latest.time, now) : null;
 
   return (
     <section className={expanded ? 'fixed inset-0 z-50 bg-slate-950 p-3 flex flex-col gap-2' : 'panel'}>
       <div className="flex items-center justify-between">
-        <p className="panel-title !mb-0">Radar precipitazioni · {error ? 'non disponibile' : frameLabel}</p>
+        <p className="panel-title !mb-0">
+          Radar precipitazioni · {error ? 'non disponibile' : frameLabel}
+          {age && !error && (
+            <span className={age.stale ? 'text-amber-400' : 'text-slate-500'}>
+              {' · '}ultimo dato {age.label}{age.stale && ' (in ritardo)'}
+            </span>
+          )}
+        </p>
         <div className="flex gap-2">
           {!error && (
             <button
@@ -129,7 +154,7 @@ export function RadarMap({ lat, lon }: Props) {
             className="w-full accent-sky-500 cursor-pointer"
           />
           <div className="flex justify-between text-[9px] text-slate-500 uppercase tracking-wider">
-            <span>-2h</span>
+            <span>{latest ? formatSpan(latest.time - frames[0].time) : ''}</span>
             <span>{frameIdx < pastCount ? 'osservato' : 'previsione'}</span>
             <span>{frames.length > pastCount ? '+30min' : 'ora'}</span>
           </div>
