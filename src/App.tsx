@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { AirQualityCard } from './components/AirQualityCard';
 import { AlertsBanner } from './components/AlertsBanner';
 import { ChartsSection } from './components/ChartsSection';
 import { CurrentCard } from './components/CurrentCard';
@@ -90,6 +91,7 @@ export default function App() {
             <HourlyStrip hourly={consensus.hourly} startIdx={nowIdx} timezone={consensus.timezone} />
             <ChartsSection hourly={consensus.hourly} startIdx={nowIdx} timezone={consensus.timezone} />
             <DailyList daily={consensus.daily} timezone={consensus.timezone} />
+            <AirQualityCard lat={city.lat} lon={city.lon} />
             <RadarMap lat={city.lat} lon={city.lon} />
             <SourcesTable sources={weather.sources} failed={weather.failedSources} consensus={consensus} />
             {weather.updatedAt && (

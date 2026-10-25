@@ -9,6 +9,7 @@ Dashboard meteo PWA che fonde più fonti in un dato di consenso.
   UKV (Regno Unito), HRRR (USA), HRDPS (Canada), MSM (Giappone)
 - MET Norway — https://api.met.no
 - Radar: RainViewer — https://rainviewer.com · Basemap © Esri, © OpenStreetMap
+- Qualità dell'aria e pollini: Open-Meteo Air Quality (CAMS) — https://open-meteo.com/en/docs/air-quality-api
 - Geocoding: Open-Meteo · Reverse: BigDataCloud
 
 Nessuna API key richiesta.
@@ -19,6 +20,7 @@ Nessuna API key richiesta.
 - Città preferite + geolocalizzazione; città nell'URL (`?lat=..&lon=..&name=..`) per link condivisibili
 - Grafici 48h (temperatura con banda di divergenza, precipitazioni, vento, pressione/umidità/UV)
 - Previsioni 7 giorni, radar animato espandibile
+- Qualità dell'aria (indice europeo EAQI, PM2.5, PM10, ozono, NO₂) e pollini in stagione
 - PWA installabile con cache offline, sfondo dinamico per meteo/ora
 
 ## Sviluppo

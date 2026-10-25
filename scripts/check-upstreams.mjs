@@ -39,6 +39,11 @@ const checks = {
     const d = await json('https://geocoding-api.open-meteo.com/v1/search?name=Milano&count=1&language=it');
     if (!d.results?.length) throw new Error('nessun risultato');
   },
+  'Open-Meteo air quality': async () => {
+    const d = await json(`https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${LAT}&longitude=${LON}` +
+      '&current=european_aqi&hourly=european_aqi&forecast_days=1');
+    if (typeof d.current?.european_aqi !== 'number') throw new Error('nessun dato AQI');
+  },
   'MET Norway': async () => {
     const d = await json(`https://api.met.no/weatherapi/locationforecast/2.0/complete?lat=${LAT}&lon=${LON}`);
     if (!d.properties?.timeseries?.length) throw new Error('timeseries vuota');

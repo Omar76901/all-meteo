@@ -9,7 +9,7 @@ const CSP = [
   "script-src 'self'",
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob: https://server.arcgisonline.com https://tilecache.rainviewer.com",
-  "connect-src 'self' https://api.open-meteo.com https://geocoding-api.open-meteo.com https://api.met.no https://api.bigdatacloud.net https://api.rainviewer.com",
+  "connect-src 'self' https://api.open-meteo.com https://geocoding-api.open-meteo.com https://air-quality-api.open-meteo.com https://api.met.no https://api.bigdatacloud.net https://api.rainviewer.com",
   "font-src 'self'",
   "worker-src 'self'",
   "manifest-src 'self'",
@@ -62,7 +62,7 @@ export default defineConfig({
         navigateFallback: 'index.html',
         runtimeCaching: [
           {
-            urlPattern: /^https:\/\/(api\.open-meteo\.com|api\.met\.no|geocoding-api\.open-meteo\.com|api\.bigdatacloud\.net|api\.rainviewer\.com)\//,
+            urlPattern: /^https:\/\/(api\.open-meteo\.com|api\.met\.no|geocoding-api\.open-meteo\.com|air-quality-api\.open-meteo\.com|api\.bigdatacloud\.net|api\.rainviewer\.com)\//,
             handler: 'StaleWhileRevalidate',
             options: {
               cacheName: 'weather-api',

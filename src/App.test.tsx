@@ -16,6 +16,7 @@ vi.mock('./components/CurrentCard', () => ({ CurrentCard: () => <div data-testid
 vi.mock('./components/HourlyStrip', () => ({ HourlyStrip: () => <div data-testid="hourly-strip" /> }));
 vi.mock('./components/ChartsSection', () => ({ ChartsSection: () => <div data-testid="charts-section" /> }));
 vi.mock('./components/DailyList', () => ({ DailyList: () => <div data-testid="daily-list" /> }));
+vi.mock('./components/AirQualityCard', () => ({ AirQualityCard: () => <div data-testid="air-quality" /> }));
 vi.mock('./components/RadarMap', () => ({ RadarMap: () => <div data-testid="radar-map" /> }));
 vi.mock('./components/SourcesTable', () => ({ SourcesTable: () => <div data-testid="sources-table" /> }));
 
