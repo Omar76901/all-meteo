@@ -1,5 +1,6 @@
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, test } from 'vitest';
+import { ThemeProvider } from '../state/theme';
 import { UnitsProvider } from '../state/units';
 import { Header } from './Header';
 
@@ -28,5 +29,17 @@ describe('Header · unità', () => {
     expect(screen.getByLabelText(/Unità temperatura: °F/)).toBeTruthy();
     expect(screen.getByLabelText(/Unità vento: m\/s/)).toBeTruthy();
     expect(JSON.parse(localStorage.getItem('allmeteo:units')!)).toEqual({ temp: 'F', wind: 'ms' });
+  });
+});
+
+describe('Header · tema', () => {
+  test('scuro → chiaro → sistema, applicato alla pagina e ricordato', () => {
+    render(<ThemeProvider><Header city={null} onSelectCity={() => {}} /></ThemeProvider>);
+    expect(document.documentElement.dataset.theme).toBe('dark');
+    fireEvent.click(screen.getByLabelText(/Tema: scuro/));
+    expect(document.documentElement.dataset.theme).toBe('light');
+    expect(localStorage.getItem('allmeteo:theme')).toBe('light');
+    fireEvent.click(screen.getByLabelText(/Tema: chiaro/));
+    expect(screen.getByLabelText(/Tema: come il sistema/)).toBeTruthy();
   });
 });

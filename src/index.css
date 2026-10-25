@@ -5,6 +5,39 @@
 }
 
 html { color-scheme: dark; }
+
+/*
+ * Tema chiaro: invece di duplicare le classi in ogni componente si ridefinisce la palette.
+ * La scala slate si inverte (950 ↔ 50, 900 ↔ 100, …) e le tinte d'accento chiare
+ * (300/400, pensate per lo sfondo scuro) prendono i toni scuri 800/700, leggibili sul chiaro.
+ */
+html[data-theme="light"] {
+  color-scheme: light;
+  --color-slate-50: oklch(12.9% 0.042 264.695);
+  --color-slate-100: oklch(20.8% 0.042 265.755);
+  --color-slate-200: oklch(27.9% 0.041 260.031);
+  --color-slate-300: oklch(37.2% 0.044 257.287);
+  --color-slate-400: oklch(44.6% 0.043 257.281);
+  --color-slate-500: oklch(52% 0.046 257.417);
+  --color-slate-600: oklch(70.4% 0.04 256.788);
+  --color-slate-700: oklch(86.9% 0.022 252.894);
+  --color-slate-800: oklch(92.9% 0.013 255.508);
+  --color-slate-900: oklch(98.4% 0.003 247.858);
+  --color-slate-950: oklch(96.8% 0.007 247.896);
+
+  --color-amber-300: oklch(47.3% 0.137 46.201);
+  --color-amber-400: oklch(55.5% 0.163 48.998);
+  --color-sky-300: oklch(44.3% 0.11 240.79);
+  --color-sky-400: oklch(50% 0.134 242.749);
+  --color-emerald-300: oklch(43.2% 0.095 166.913);
+  --color-emerald-400: oklch(50.8% 0.118 165.612);
+  --color-rose-300: oklch(45.5% 0.188 13.697);
+  --color-rose-400: oklch(51.4% 0.222 16.935);
+  --color-orange-300: oklch(47% 0.157 37.304);
+  --color-orange-400: oklch(55.3% 0.195 38.402);
+  --color-lime-400: oklch(53.2% 0.157 131.589);
+  --color-fuchsia-400: oklch(51.8% 0.253 323.949);
+}
 body { @apply bg-slate-950 text-slate-200 font-mono antialiased; }
 
 .panel { @apply bg-slate-900/70 border border-slate-800 rounded-xl p-4 backdrop-blur-sm; }

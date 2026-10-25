@@ -5,25 +5,42 @@ import {
 import type { ConsensusHourlyPoint } from '../domain/consensus';
 import { formatDayHour, formatHour } from '../domain/timeUtils';
 import { WIND_LABEL, convertTemp, convertWind } from '../domain/units';
+import { useTheme, type Theme } from '../state/theme';
 import { useUnits } from '../state/units';
 
 interface Props { hourly: ConsensusHourlyPoint[]; startIdx: number; timezone: string | null }
 
-const AXIS = { stroke: '#475569', fontSize: 10 } as const;
-const GRID = { stroke: '#1e293b', strokeDasharray: '3 3' } as const;
 const round1 = (v: number) => Math.round(v * 10) / 10;
 
-const TOOLTIP = {
-  contentStyle: { background: '#0f172a', border: '1px solid #334155', borderRadius: 8, fontSize: 12 },
-  labelStyle: { color: '#94a3b8' },
-  formatter: (value: unknown) =>
-    Array.isArray(value)
-      ? value.map(x => (typeof x === 'number' ? round1(x) : String(x))).join(' ~ ')
-      : typeof value === 'number' ? round1(value) : String(value ?? ''),
-} as const;
+/** I colori SVG di recharts sono attributi, non CSS: le variabili del tema non arrivano, servono due palette. */
+const PALETTE: Record<Theme, Record<string, string>> = {
+  dark: {
+    axis: '#475569', grid: '#1e293b', tipBg: '#0f172a', tipBorder: '#334155', tipLabel: '#94a3b8',
+    temp: '#fbbf24', rain: '#38bdf8', prob: '#818cf8', wind: '#38bdf8',
+    pressione: '#a78bfa', umidita: '#34d399', uv: '#fb923c',
+  },
+  light: {
+    axis: '#64748b', grid: '#cbd5e1', tipBg: '#ffffff', tipBorder: '#cbd5e1', tipLabel: '#475569',
+    temp: '#d97706', rain: '#0284c7', prob: '#4f46e5', wind: '#0284c7',
+    pressione: '#7c3aed', umidita: '#059669', uv: '#ea580c',
+  },
+};
+
+const tooltipFormatter = (value: unknown) =>
+  Array.isArray(value)
+    ? value.map(x => (typeof x === 'number' ? round1(x) : String(x))).join(' ~ ')
+    : typeof value === 'number' ? round1(value) : String(value ?? '');
 
 export function ChartsSection({ hourly, startIdx, timezone }: Props) {
   const { units } = useUnits();
+  const c = PALETTE[useTheme().theme];
+  const AXIS = { stroke: c.axis, fontSize: 10 } as const;
+  const GRID = { stroke: c.grid, strokeDasharray: '3 3' } as const;
+  const TOOLTIP = {
+    contentStyle: { background: c.tipBg, border: `1px solid ${c.tipBorder}`, borderRadius: 8, fontSize: 12 },
+    labelStyle: { color: c.tipLabel },
+    formatter: tooltipFormatter,
+  } as const;
   const temp = (v: number | null) => (v === null ? null : convertTemp(v, units.temp));
   const wind = (v: number | null) => (v === null ? null : convertWind(v, units.wind));
   // L'asse X usa l'ISO completo come chiave: le sole ore si ripetono su 48h e
@@ -60,8 +77,8 @@ export function ChartsSection({ hourly, startIdx, timezone }: Props) {
             <XAxis dataKey="t" tickFormatter={tickHour} {...AXIS} interval={5} />
             <YAxis {...AXIS} unit="°" width={32} domain={['auto', 'auto']} />
             <Tooltip {...TOOLTIP} labelFormatter={labelDayHour} />
-            <Area dataKey="banda" fill="#fbbf24" fillOpacity={0.15} stroke="none" name="min–max fonti" />
-            <Line dataKey="temp" stroke="#fbbf24" strokeWidth={2} dot={false} name={`consenso °${units.temp}`} />
+            <Area dataKey="banda" fill={c.temp} fillOpacity={0.15} stroke="none" name="min–max fonti" />
+            <Line dataKey="temp" stroke={c.temp} strokeWidth={2} dot={false} name={`consenso °${units.temp}`} />
           </ComposedChart>
         </ResponsiveContainer>
       </section>
@@ -75,8 +92,8 @@ export function ChartsSection({ hourly, startIdx, timezone }: Props) {
             <YAxis yAxisId="mm" {...AXIS} unit="mm" width={40} />
             <YAxis yAxisId="pct" orientation="right" {...AXIS} unit="%" width={36} domain={[0, 100]} />
             <Tooltip {...TOOLTIP} labelFormatter={labelDayHour} />
-            <Bar yAxisId="mm" dataKey="pioggia" fill="#38bdf8" name="mm/h" />
-            <Line yAxisId="pct" dataKey="prob" stroke="#818cf8" strokeWidth={1.5} dot={false} name="probabilità %" />
+            <Bar yAxisId="mm" dataKey="pioggia" fill={c.rain} name="mm/h" />
+            <Line yAxisId="pct" dataKey="prob" stroke={c.prob} strokeWidth={1.5} dot={false} name="probabilità %" />
           </ComposedChart>
         </ResponsiveContainer>
       </section>
@@ -89,8 +106,8 @@ export function ChartsSection({ hourly, startIdx, timezone }: Props) {
             <XAxis dataKey="t" tickFormatter={tickHour} {...AXIS} interval={5} />
             <YAxis {...AXIS} width={32} />
             <Tooltip {...TOOLTIP} labelFormatter={labelDayHour} />
-            <Line dataKey="vento" stroke="#38bdf8" strokeWidth={2} dot={false} name="vento" />
-            <Line dataKey="raffiche" stroke="#38bdf8" strokeWidth={1} strokeDasharray="4 3" dot={false} name="raffiche" />
+            <Line dataKey="vento" stroke={c.wind} strokeWidth={2} dot={false} name="vento" />
+            <Line dataKey="raffiche" stroke={c.wind} strokeWidth={1} strokeDasharray="4 3" dot={false} name="raffiche" />
           </LineChart>
         </ResponsiveContainer>
         <div className="flex justify-between px-8 text-sky-400 text-xs" aria-hidden>
@@ -103,13 +120,13 @@ export function ChartsSection({ hourly, startIdx, timezone }: Props) {
       <section className="panel">
         <p className="panel-title">Pressione · Umidità · UV</p>
         <div className="grid sm:grid-cols-3 gap-3">
-          {([['pressione', '#a78bfa', 'hPa'], ['umidita', '#34d399', '%'], ['uv', '#fb923c', '']] as const).map(([key, color, unit]) => (
+          {([['pressione', 'hPa'], ['umidita', '%'], ['uv', '']] as const).map(([key, unit]) => (
             <ResponsiveContainer key={key} width="100%" height={110}>
               <LineChart data={data}>
                 <XAxis dataKey="t" tickFormatter={tickHour} {...AXIS} interval={11} />
                 <YAxis {...AXIS} width={38} unit={unit} domain={['auto', 'auto']} />
                 <Tooltip {...TOOLTIP} labelFormatter={labelDayHour} />
-                <Line dataKey={key} stroke={color} strokeWidth={1.5} dot={false} name={key} />
+                <Line dataKey={key} stroke={c[key]} strokeWidth={1.5} dot={false} name={key} />
               </LineChart>
             </ResponsiveContainer>
           ))}

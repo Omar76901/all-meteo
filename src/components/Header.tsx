@@ -3,6 +3,7 @@ import { reverseGeocode } from '../api/geocoding';
 import type { City } from '../domain/types';
 import { getFavorites, isFavorite, toggleFavorite } from '../state/settings';
 import { TEMP_UNITS, WIND_LABEL, WIND_UNITS } from '../domain/units';
+import { THEME_SETTINGS, useTheme, type ThemeSetting } from '../state/theme';
 import { useUnits } from '../state/units';
 import { CitySearch } from './CitySearch';
 
@@ -10,8 +11,12 @@ interface Props { city: City | null; onSelectCity: (c: City) => void }
 
 const next = <T,>(list: T[], current: T) => list[(list.indexOf(current) + 1) % list.length];
 
+const THEME_ICON: Record<ThemeSetting, string> = { dark: '🌙', light: '☀️', auto: '🌓' };
+const THEME_LABEL: Record<ThemeSetting, string> = { dark: 'scuro', light: 'chiaro', auto: 'come il sistema' };
+
 export function Header({ city, onSelectCity }: Props) {
   const { units, setUnits } = useUnits();
+  const { setting, setSetting } = useTheme();
   const [favorites, setFavorites] = useState<City[]>(getFavorites);
   const [gpsError, setGpsError] = useState<string | null>(null);
   const [gpsBusy, setGpsBusy] = useState(false);
@@ -59,6 +64,14 @@ export function Header({ city, onSelectCity }: Props) {
           className="px-3 py-2 rounded-lg border border-slate-700 bg-slate-900/80 text-sm hover:border-sky-500"
         >
           {WIND_LABEL[units.wind]}
+        </button>
+        <button
+          onClick={() => setSetting(next(THEME_SETTINGS, setting))}
+          aria-label={`Tema: ${THEME_LABEL[setting]}, tocca per cambiare`}
+          title={`Tema: ${THEME_LABEL[setting]}`}
+          className="px-3 py-2 rounded-lg border border-slate-700 bg-slate-900/80 text-sm hover:border-sky-500"
+        >
+          {THEME_ICON[setting]}
         </button>
         {city && (
           <button

@@ -22,6 +22,7 @@ Nessuna API key richiesta.
 - Previsioni 7 giorni, radar animato espandibile
 - Qualità dell'aria (indice europeo EAQI, PM2.5, PM10, ozono, NO₂) e pollini in stagione
 - Unità a scelta: °C/°F e vento in km/h, m/s, nodi o mph (ricordate sul dispositivo)
+- Tema scuro, chiaro o come il sistema (anche la mappa e i grafici seguono il tema)
 - PWA installabile con cache offline, sfondo dinamico per meteo/ora
 
 ## Sviluppo

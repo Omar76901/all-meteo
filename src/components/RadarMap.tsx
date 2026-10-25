@@ -1,9 +1,14 @@
 import L from 'leaflet';
 import { useEffect, useRef, useState } from 'react';
 import { fetchRadarFrames, formatSpan, radarAge, type RadarFrame } from '../api/rainviewer';
+import { useTheme, type Theme } from '../state/theme';
 
 /** RainViewer pubblica un nuovo frame ogni 10 minuti. */
 const RADAR_REFRESH_MS = 10 * 60 * 1000;
+
+/** CARTO ora richiede una API key: le basemap Esri Gray Canvas sono senza chiave, in versione scura e chiara. */
+const esriUrl = (theme: Theme, layer: 'Base' | 'Reference') =>
+  `https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_${theme === 'light' ? 'Light' : 'Dark'}_Gray_${layer}/MapServer/tile/{z}/{y}/{x}`;
 
 interface Props { lat: number; lon: number }
 
@@ -12,6 +17,9 @@ export function RadarMap({ lat, lon }: Props) {
   const mapRef = useRef<L.Map | null>(null);
   const markerRef = useRef<L.CircleMarker | null>(null);
   const layersRef = useRef<L.TileLayer[]>([]);
+  const baseRef = useRef<L.TileLayer | null>(null);
+  const labelsRef = useRef<L.TileLayer | null>(null);
+  const { theme } = useTheme();
   const [frames, setFrames] = useState<RadarFrame[]>([]);
   const [pastCount, setPastCount] = useState(0);
   const [frameIdx, setFrameIdx] = useState(0);
@@ -23,15 +31,13 @@ export function RadarMap({ lat, lon }: Props) {
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
     const map = L.map(containerRef.current, { zoomControl: false, maxZoom: 12 }).setView([lat, lon], 7);
-    // CARTO ora richiede una API key: Esri Dark Gray è senza chiave e ha lo stesso stile scuro
-    const esri = 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas';
-    L.tileLayer(`${esri}/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}`, {
+    baseRef.current = L.tileLayer(esriUrl(theme, 'Base'), {
       attribution: 'Tiles &copy; Esri, HERE, Garmin, &copy; OpenStreetMap', maxNativeZoom: 16, maxZoom: 12,
     }).addTo(map);
     // etichette sopra il radar, così i nomi delle città restano leggibili
     map.createPane('labels').style.zIndex = '450';
     map.getPane('labels')!.style.pointerEvents = 'none';
-    L.tileLayer(`${esri}/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}`, {
+    labelsRef.current = L.tileLayer(esriUrl(theme, 'Reference'), {
       pane: 'labels', maxNativeZoom: 16, maxZoom: 12,
     }).addTo(map);
     markerRef.current = L.circleMarker([lat, lon], {
@@ -42,6 +48,11 @@ export function RadarMap({ lat, lon }: Props) {
     return () => { map.remove(); mapRef.current = null; markerRef.current = null; layersRef.current = []; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    baseRef.current?.setUrl(esriUrl(theme, 'Base'));
+    labelsRef.current?.setUrl(esriUrl(theme, 'Reference'));
+  }, [theme]);
 
   useEffect(() => {
     let cancelled = false;

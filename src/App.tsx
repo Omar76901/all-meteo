@@ -14,6 +14,7 @@ import { currentHourIndex, formatTime } from './domain/timeUtils';
 import type { City } from './domain/types';
 import { getWeatherInfo } from './domain/weatherCodes';
 import { getLastCity, setLastCity } from './state/settings';
+import { useTheme } from './state/theme';
 import { useUnits } from './state/units';
 import { getUrlCity, setUrlCity } from './state/urlCity';
 import { useWeather } from './state/useWeather';
@@ -24,6 +25,7 @@ export default function App() {
   const weather = useWeather(city);
   const { consensus } = weather;
   const { units } = useUnits();
+  const { theme } = useTheme();
 
   const selectCity = (c: City) => { setCity(c); setLastCity(c); };
 
@@ -40,8 +42,12 @@ export default function App() {
       today?.sunrise ? new Date(today.sunrise) : null,
       today?.sunset ? new Date(today.sunset) : null,
     );
-    return gradientFor(category, phase);
-  }, [current?.weatherCode, consensus?.daily]);
+    const gradient = gradientFor(category, phase);
+    // nel tema chiaro il gradiente del meteo resta come tinta sotto un velo chiaro
+    return theme === 'light'
+      ? `linear-gradient(rgb(241 245 249 / 0.82), rgb(241 245 249 / 0.82)), ${gradient}`
+      : gradient;
+  }, [current?.weatherCode, consensus?.daily, theme]);
 
   const alerts = useMemo(
     () => (consensus ? deriveAlerts(consensus.hourly.slice(nowIdx, nowIdx + 48), consensus.timezone, units) : []),
