@@ -14,6 +14,7 @@ import { currentHourIndex, formatTime } from './domain/timeUtils';
 import type { City } from './domain/types';
 import { getWeatherInfo } from './domain/weatherCodes';
 import { getLastCity, setLastCity } from './state/settings';
+import { useUnits } from './state/units';
 import { getUrlCity, setUrlCity } from './state/urlCity';
 import { useWeather } from './state/useWeather';
 
@@ -22,6 +23,7 @@ export default function App() {
   const [city, setCity] = useState<City | null>(() => getUrlCity() ?? getLastCity());
   const weather = useWeather(city);
   const { consensus } = weather;
+  const { units } = useUnits();
 
   const selectCity = (c: City) => { setCity(c); setLastCity(c); };
 
@@ -42,8 +44,8 @@ export default function App() {
   }, [current?.weatherCode, consensus?.daily]);
 
   const alerts = useMemo(
-    () => (consensus ? deriveAlerts(consensus.hourly.slice(nowIdx, nowIdx + 48), consensus.timezone) : []),
-    [consensus, nowIdx],
+    () => (consensus ? deriveAlerts(consensus.hourly.slice(nowIdx, nowIdx + 48), consensus.timezone, units) : []),
+    [consensus, nowIdx, units],
   );
 
   return (

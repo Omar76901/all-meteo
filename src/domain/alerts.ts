@@ -1,5 +1,6 @@
 import type { ConsensusHourlyPoint } from './consensus';
 import { formatDayHour } from './timeUtils';
+import { DEFAULT_UNITS, fmtTemp, fmtWind, type Units } from './units';
 
 export type AlertSeverity = 'giallo' | 'arancione' | 'rosso';
 
@@ -37,7 +38,9 @@ const SNOW_ORANGE = new Set([75, 86]);
 const SNOW_YELLOW = new Set([71, 73, 77, 85]);
 
 /** Allerte derivate dal consenso multi-fonte sulle prossime ore (non bollettini ufficiali). */
-export function deriveAlerts(hourly: ConsensusHourlyPoint[], timezone: string | null): WeatherAlert[] {
+export function deriveAlerts(
+  hourly: ConsensusHourlyPoint[], timezone: string | null, units: Units = DEFAULT_UNITS,
+): WeatherAlert[] {
   const window = hourly.slice(0, 48);
   if (window.length === 0) return [];
   const alerts: WeatherAlert[] = [];
@@ -49,19 +52,19 @@ export function deriveAlerts(hourly: ConsensusHourlyPoint[], timezone: string | 
 
   const heat = peakBy(window, h => h.temperature);
   if (heat) push('caldo', grade(heat.value, 35, 37, 40), '🥵', 'Caldo intenso',
-    `fino a ${Math.round(heat.value)}° · ${when(heat.time)}`);
+    `fino a ${fmtTemp(heat.value, units.temp)} · ${when(heat.time)}`);
 
   const cold = peakBy(window, h => (h.temperature === null ? null : -h.temperature));
   if (cold) push('gelo', grade(cold.value, 5, 10, 15), '🥶', 'Gelo',
-    `fino a ${Math.round(-cold.value)}° · ${when(cold.time)}`);
+    `fino a ${fmtTemp(-cold.value, units.temp)} · ${when(cold.time)}`);
 
   const wind = peakBy(window, h => h.windSpeed);
   if (wind) push('vento', grade(wind.value, 50, 70, 90), '💨', 'Vento forte',
-    `fino a ${Math.round(wind.value)} km/h · ${when(wind.time)}`);
+    `fino a ${fmtWind(wind.value, units.wind)} · ${when(wind.time)}`);
 
   const gusts = peakBy(window, h => h.windGusts);
   if (gusts) push('raffiche', grade(gusts.value, 70, 90, 110), '🌬️', 'Raffiche violente',
-    `fino a ${Math.round(gusts.value)} km/h · ${when(gusts.time)}`);
+    `fino a ${fmtWind(gusts.value, units.wind)} · ${when(gusts.time)}`);
 
   const rain = peakBy(window, h => h.precipitation);
   if (rain) push('pioggia', grade(rain.value, 6, 15, 30), '🌧️', 'Pioggia intensa',

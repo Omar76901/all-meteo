@@ -71,3 +71,13 @@ describe('deriveAlerts', () => {
     expect(deriveAlerts([hour(0, { temperature: null, windSpeed: null, windGusts: null, precipitation: null, uvIndex: null, weatherCode: null })], null)).toEqual([]);
   });
 });
+
+describe('deriveAlerts con altre unità', () => {
+  test('soglie sui dati in °C e km/h, testo nelle unità scelte', () => {
+    const [heat] = deriveAlerts([hour(0, { temperature: 36 })], null, { temp: 'F', wind: 'kmh' });
+    expect(heat.description).toMatch(/^fino a 97°/);
+    const [wind] = deriveAlerts([hour(0, { windSpeed: 54 })], null, { temp: 'C', wind: 'ms' });
+    expect(wind).toMatchObject({ id: 'vento', severity: 'giallo' });
+    expect(wind.description).toMatch(/^fino a 15 m\/s/);
+  });
+});

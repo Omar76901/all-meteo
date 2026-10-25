@@ -2,6 +2,8 @@ import { SOURCE_LABELS } from '../api/sources';
 import type { ConsensusForecast } from '../domain/consensus';
 import { currentHourIndex } from '../domain/timeUtils';
 import type { SourceForecast } from '../domain/types';
+import { WIND_LABEL, convertTemp, convertWind } from '../domain/units';
+import { useUnits } from '../state/units';
 
 interface Props {
   sources: SourceForecast[];
@@ -12,6 +14,10 @@ interface Props {
 const fmt = (v: number | null | undefined, unit = '') => (v == null ? '–' : `${Math.round(v * 10) / 10}${unit}`);
 
 export function SourcesTable({ sources, failed, consensus }: Props) {
+  const { units } = useUnits();
+  // qui una cifra decimale: servono a vedere quanto si discostano le fonti
+  const temp = (v: number | null | undefined) => fmt(v == null ? v : convertTemp(v, units.temp), '°');
+  const wind = (v: number | null | undefined) => fmt(v == null ? v : convertWind(v, units.wind), ` ${WIND_LABEL[units.wind]}`);
   const nowIdx = currentHourIndex(consensus.hourly.map(h => h.time));
   const nowTime = consensus.hourly[nowIdx]?.time;
   const consNow = consensus.hourly[nowIdx];
@@ -45,9 +51,9 @@ export function SourcesTable({ sources, failed, consensus }: Props) {
                   )}
                 </td>
                 <td className="py-1.5 pr-2 text-emerald-400">● ok</td>
-                <td className="py-1.5 pr-2 text-amber-300">{fmt(p?.temperature, '°')}</td>
+                <td className="py-1.5 pr-2 text-amber-300">{temp(p?.temperature)}</td>
                 <td className="py-1.5 pr-2 text-sky-400">{fmt(p?.precipitation, ' mm')}</td>
-                <td className="py-1.5 pr-2">{fmt(p?.windSpeed, ' km/h')}</td>
+                <td className="py-1.5 pr-2">{wind(p?.windSpeed)}</td>
               </tr>
             );
           })}
@@ -61,9 +67,9 @@ export function SourcesTable({ sources, failed, consensus }: Props) {
           <tr className="border-t-2 border-slate-700 font-bold">
             <td className="py-1.5 pr-2 text-sky-400">Consenso</td>
             <td className="py-1.5 pr-2" />
-            <td className="py-1.5 pr-2 text-amber-300">{fmt(consNow?.temperature, '°')}</td>
+            <td className="py-1.5 pr-2 text-amber-300">{temp(consNow?.temperature)}</td>
             <td className="py-1.5 pr-2 text-sky-400">{fmt(consNow?.precipitation, ' mm')}</td>
-            <td className="py-1.5 pr-2">{fmt(consNow?.windSpeed, ' km/h')}</td>
+            <td className="py-1.5 pr-2">{wind(consNow?.windSpeed)}</td>
           </tr>
         </tbody>
       </table>

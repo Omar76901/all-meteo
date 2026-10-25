@@ -4,6 +4,8 @@ import {
 } from 'recharts';
 import type { ConsensusHourlyPoint } from '../domain/consensus';
 import { formatDayHour, formatHour } from '../domain/timeUtils';
+import { WIND_LABEL, convertTemp, convertWind } from '../domain/units';
+import { useUnits } from '../state/units';
 
 interface Props { hourly: ConsensusHourlyPoint[]; startIdx: number; timezone: string | null }
 
@@ -21,18 +23,23 @@ const TOOLTIP = {
 } as const;
 
 export function ChartsSection({ hourly, startIdx, timezone }: Props) {
+  const { units } = useUnits();
+  const temp = (v: number | null) => (v === null ? null : convertTemp(v, units.temp));
+  const wind = (v: number | null) => (v === null ? null : convertWind(v, units.wind));
   // L'asse X usa l'ISO completo come chiave: le sole ore si ripetono su 48h e
   // farebbero agganciare tooltip/dot alla prima occorrenza duplicata.
   const data = hourly.slice(startIdx, startIdx + 48).map(h => {
-    const temps = Object.values(h.temperatureBySource).filter((v): v is number => v !== null);
+    const temps = Object.values(h.temperatureBySource)
+      .filter((v): v is number => v !== null)
+      .map(v => convertTemp(v, units.temp));
     return {
       t: h.time,
-      temp: h.temperature,
+      temp: temp(h.temperature),
       banda: temps.length >= 2 ? [Math.min(...temps), Math.max(...temps)] : null,
       pioggia: h.precipitation,
       prob: h.precipitationProbability,
-      vento: h.windSpeed,
-      raffiche: h.windGusts,
+      vento: wind(h.windSpeed),
+      raffiche: wind(h.windGusts),
       direzione: h.windDirection,
       pressione: h.pressure,
       umidita: h.humidity,
@@ -54,7 +61,7 @@ export function ChartsSection({ hourly, startIdx, timezone }: Props) {
             <YAxis {...AXIS} unit="°" width={32} domain={['auto', 'auto']} />
             <Tooltip {...TOOLTIP} labelFormatter={labelDayHour} />
             <Area dataKey="banda" fill="#fbbf24" fillOpacity={0.15} stroke="none" name="min–max fonti" />
-            <Line dataKey="temp" stroke="#fbbf24" strokeWidth={2} dot={false} name="consenso °C" />
+            <Line dataKey="temp" stroke="#fbbf24" strokeWidth={2} dot={false} name={`consenso °${units.temp}`} />
           </ComposedChart>
         </ResponsiveContainer>
       </section>
@@ -75,7 +82,7 @@ export function ChartsSection({ hourly, startIdx, timezone }: Props) {
       </section>
 
       <section className="panel">
-        <p className="panel-title">Vento · velocità e raffiche (km/h), frecce = direzione</p>
+        <p className="panel-title">Vento · velocità e raffiche ({WIND_LABEL[units.wind]}), frecce = direzione</p>
         <ResponsiveContainer width="100%" height={160}>
           <LineChart data={data}>
             <CartesianGrid {...GRID} />

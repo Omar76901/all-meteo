@@ -21,6 +21,7 @@ Nessuna API key richiesta.
 - Grafici 48h (temperatura con banda di divergenza, precipitazioni, vento, pressione/umidità/UV)
 - Previsioni 7 giorni, radar animato espandibile
 - Qualità dell'aria (indice europeo EAQI, PM2.5, PM10, ozono, NO₂) e pollini in stagione
+- Unità a scelta: °C/°F e vento in km/h, m/s, nodi o mph (ricordate sul dispositivo)
 - PWA installabile con cache offline, sfondo dinamico per meteo/ora
 
 ## Sviluppo
