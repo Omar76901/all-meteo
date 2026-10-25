@@ -20,7 +20,8 @@ const framed = (() => {
 const root = document.getElementById('root')!;
 if (framed) {
   const link = document.createElement('a');
-  link.href = window.location.href;
+  // indirizzo fisso dell'app, non l'URL corrente: chi incornicia la pagina controlla i parametri
+  link.href = import.meta.env.BASE_URL;
   link.target = '_blank';
   link.rel = 'noopener noreferrer';
   link.textContent = 'Apri allMeteo in una nuova scheda';
