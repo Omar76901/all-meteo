@@ -8,7 +8,7 @@ Dashboard meteo PWA che fonde più fonti in un dato di consenso.
   ICON-2I (Italia), ICON-CH2 (Svizzera/Alpi), ICON-D2 (Europa centrale), AROME (Francia),
   UKV (Regno Unito), HRRR (USA), HRDPS (Canada), MSM (Giappone)
 - MET Norway — https://api.met.no
-- Radar: RainViewer — https://rainviewer.com · Basemap © OpenStreetMap © CARTO
+- Radar: RainViewer — https://rainviewer.com · Basemap © Esri, © OpenStreetMap
 - Geocoding: Open-Meteo · Reverse: BigDataCloud
 
 Nessuna API key richiesta.

@@ -8,7 +8,7 @@ const CSP = [
   "default-src 'self'",
   "script-src 'self'",
   "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' data: blob: https://*.basemaps.cartocdn.com https://tilecache.rainviewer.com",
+  "img-src 'self' data: blob: https://server.arcgisonline.com https://tilecache.rainviewer.com",
   "connect-src 'self' https://api.open-meteo.com https://geocoding-api.open-meteo.com https://api.met.no https://api.bigdatacloud.net https://api.rainviewer.com",
   "font-src 'self'",
   "worker-src 'self'",
@@ -70,7 +70,7 @@ export default defineConfig({
             },
           },
           {
-            urlPattern: /^https:\/\/([a-d]\.basemaps\.cartocdn\.com|tilecache\.rainviewer\.com)\//,
+            urlPattern: /^https:\/\/(server\.arcgisonline\.com|tilecache\.rainviewer\.com)\//,
             handler: 'CacheFirst',
             options: {
               cacheName: 'map-tiles',

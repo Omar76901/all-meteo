@@ -19,9 +19,17 @@ export function RadarMap({ lat, lon }: Props) {
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
     let cancelled = false;
-    const map = L.map(containerRef.current, { zoomControl: false }).setView([lat, lon], 7);
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-      attribution: '&copy; OpenStreetMap &copy; CARTO', subdomains: 'abcd', maxZoom: 12,
+    const map = L.map(containerRef.current, { zoomControl: false, maxZoom: 12 }).setView([lat, lon], 7);
+    // CARTO ora richiede una API key: Esri Dark Gray è senza chiave e ha lo stesso stile scuro
+    const esri = 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas';
+    L.tileLayer(`${esri}/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}`, {
+      attribution: 'Tiles &copy; Esri, HERE, Garmin, &copy; OpenStreetMap', maxNativeZoom: 16, maxZoom: 12,
+    }).addTo(map);
+    // etichette sopra il radar, così i nomi delle città restano leggibili
+    map.createPane('labels').style.zIndex = '450';
+    map.getPane('labels')!.style.pointerEvents = 'none';
+    L.tileLayer(`${esri}/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}`, {
+      pane: 'labels', maxNativeZoom: 16, maxZoom: 12,
     }).addTo(map);
     markerRef.current = L.circleMarker([lat, lon], {
       radius: 7, color: '#e0f2fe', weight: 2, fillColor: '#0ea5e9', fillOpacity: 0.9,
@@ -32,7 +40,8 @@ export function RadarMap({ lat, lon }: Props) {
       .then(({ host, frames, pastCount }) => {
         if (cancelled) return;
         layersRef.current = frames.map(f =>
-          L.tileLayer(`${host}${f.path}/256/{z}/{x}/{y}/2/1_1.png`, { opacity: 0, maxZoom: 12 }).addTo(map));
+          // RainViewer serve le tile solo fino a zoom 7: oltre Leaflet ingrandisce quelle
+          L.tileLayer(`${host}${f.path}/256/{z}/{x}/{y}/2/1_1.png`, { opacity: 0, maxNativeZoom: 7, maxZoom: 12 }).addTo(map));
         setFrames(frames);
         setPastCount(pastCount);
         setFrameIdx(Math.max(0, pastCount - 1));
@@ -122,7 +131,7 @@ export function RadarMap({ lat, lon }: Props) {
           <div className="flex justify-between text-[9px] text-slate-500 uppercase tracking-wider">
             <span>-2h</span>
             <span>{frameIdx < pastCount ? 'osservato' : 'previsione'}</span>
-            <span>+30min</span>
+            <span>{frames.length > pastCount ? '+30min' : 'ora'}</span>
           </div>
         </div>
       )}
